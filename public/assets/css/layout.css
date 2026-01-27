@@ -1,0 +1,10 @@
+nav{
+    background-color: rgba(0, 0, 139, 0.514);
+    border: 1px solid lightskyblue;
+    position: absolute;
+    width: 100vw;
+    height: 5vh;
+    text-align: center;
+    top: 0px;
+    left: 0px;
+}
