@@ -14,4 +14,3 @@
     <?php include __DIR__ . '/../app/includes/footer.php'; ?>
 </div>
 
-<script src="/assets/js/main.js"></script>

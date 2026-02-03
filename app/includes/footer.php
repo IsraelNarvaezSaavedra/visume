@@ -2,7 +2,7 @@
     <p>© Visume</p>
 </footer>
 </div>
-<script src="/assets/js/background.js"></script>
+<script type="module" src="/assets/js/main.js"></script>
 </body>
 
 </html>
