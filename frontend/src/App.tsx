@@ -9,7 +9,7 @@ import Footer from "./components/Footer";
 import Auth from "./components/Auth";
 import ParticlesBackground from "./components/ParticlesBackground";
 import { Menu, X, LogIn } from "lucide-react";
-import logo from "figma:asset/1d2887d0560c03701e2c49da822f19698caa5d77.png";
+import logo from "./assets/logo.png";
 
 export default function App() {
   const [currentSection, setCurrentSection] = useState("home");
