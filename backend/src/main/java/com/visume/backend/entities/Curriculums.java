@@ -28,9 +28,11 @@ public class Curriculums {
     @JoinColumn(name = "id_prompt", nullable = false, foreignKey = @ForeignKey(name = "fk_curriculums_prompts"))
     private Prompts prompt;
 
+/*
     @ManyToOne
     @JoinColumn(name = "nombre_usuario", nullable = false, foreignKey = @ForeignKey(name = "fk_curriculums_usuarios"))
     private Usuarios usuario;
+*/
 
     @Column(name = "titulo", length = 150, nullable = false)
     private String titulo;
@@ -82,6 +84,7 @@ public class Curriculums {
         this.prompt = prompt;
     }
 
+/*
     public Usuarios getUsuario() {
         return usuario;
     }
@@ -89,6 +92,7 @@ public class Curriculums {
     public void setUsuario(Usuarios usuario) {
         this.usuario = usuario;
     }
+*/
 
     public String getTitulo() {
         return titulo;

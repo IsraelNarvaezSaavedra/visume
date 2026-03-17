@@ -37,8 +37,10 @@ public class Planes {
     private LocalDateTime creadoEn;
 
     // Relaciones OneToMany
+    /*
     @OneToMany(mappedBy = "plan")
     private List<Usuarios> usuarios;
+    */
 
     @OneToMany(mappedBy = "plan")
     private List<Pagos> pagos;
@@ -92,6 +94,7 @@ public class Planes {
         this.creadoEn = creadoEn;
     }
 
+/*
     public List<Usuarios> getUsuarios() {
         return usuarios;
     }
@@ -99,6 +102,7 @@ public class Planes {
     public void setUsuarios(List<Usuarios> usuarios) {
         this.usuarios = usuarios;
     }
+*/
 
     public List<Pagos> getPagos() {
         return pagos;

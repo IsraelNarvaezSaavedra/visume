@@ -20,7 +20,7 @@ public class Usuarios {
 
     @Id
     @Column(name = "nombre_usuario", length = 50)
-    private String nombreUsuario;
+    private String username;
     
     @Column(unique = true, nullable = false, length = 120)
     private String email;
@@ -30,7 +30,7 @@ public class Usuarios {
     
     @Column(name = "nombre", length = 100)
     private String nombre;
-    
+    /*
     @Column(name = "profesion", length = 100)
     private String profesion;
     
@@ -65,18 +65,15 @@ public class Usuarios {
     private List<Curriculums> curriculums;
     
     @OneToMany(mappedBy = "usuario")
-    private List<Sesiones> sesiones;
-    
-    @OneToMany(mappedBy = "usuario")
     private List<Pagos> pagos;
-    
+    */
     // Getters y Setters
-    public String getNombreUsuario() {
-        return nombreUsuario;
+    public String getUsername() {
+        return username;
     }
 
-    public void setNombreUsuario(String nombreUsuario) {
-        this.nombreUsuario = nombreUsuario;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getEmail() {
@@ -102,7 +99,7 @@ public class Usuarios {
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }
-
+ /*
     public String getProfesion() {
         return profesion;
     }
@@ -183,14 +180,6 @@ public class Usuarios {
         this.curriculums = curriculums;
     }
 
-    public List<Sesiones> getSesiones() {
-        return sesiones;
-    }
-
-    public void setSesiones(List<Sesiones> sesiones) {
-        this.sesiones = sesiones;
-    }
-
     public List<Pagos> getPagos() {
         return pagos;
     }
@@ -198,4 +187,5 @@ public class Usuarios {
     public void setPagos(List<Pagos> pagos) {
         this.pagos = pagos;
     }
+	*/
 }

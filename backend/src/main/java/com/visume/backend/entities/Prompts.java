@@ -22,10 +22,10 @@ public class Prompts {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_prompt")
     private Integer idPrompt;
-
+/*
     @ManyToOne
     @JoinColumn(name = "nombre_usuario", nullable = false, foreignKey = @ForeignKey(name = "fk_prompts_usuarios"))
-    private Usuarios usuario;
+    private Usuarios usuario;*/
 
     @Column(name = "contenido", columnDefinition = "TEXT", nullable = false)
     private String contenido;
@@ -45,7 +45,7 @@ public class Prompts {
     public void setIdPrompt(Integer idPrompt) {
         this.idPrompt = idPrompt;
     }
-
+/*
     public Usuarios getUsuario() {
         return usuario;
     }
@@ -53,7 +53,7 @@ public class Prompts {
     public void setUsuario(Usuarios usuario) {
         this.usuario = usuario;
     }
-
+*/
     public String getContenido() {
         return contenido;
     }

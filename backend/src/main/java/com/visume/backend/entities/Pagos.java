@@ -23,9 +23,11 @@ public class Pagos {
     @Column(name = "id_pago")
     private Integer idPago;
 
+/*
     @ManyToOne
     @JoinColumn(name = "nombre_usuario", nullable = false, foreignKey = @ForeignKey(name = "fk_pagos_usuarios"))
     private Usuarios usuario;
+*/
 
     @ManyToOne
     @JoinColumn(name = "id_plan", nullable = false, foreignKey = @ForeignKey(name = "fk_pagos_planes"))
@@ -61,6 +63,7 @@ public class Pagos {
         this.idPago = idPago;
     }
 
+/*
     public Usuarios getUsuario() {
         return usuario;
     }
@@ -68,6 +71,7 @@ public class Pagos {
     public void setUsuario(Usuarios usuario) {
         this.usuario = usuario;
     }
+*/
 
     public Planes getPlan() {
         return plan;
