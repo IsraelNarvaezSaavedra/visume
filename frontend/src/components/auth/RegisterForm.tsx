@@ -4,8 +4,8 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, User, AtSign, Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
 
-const API_URL = 'http://isra.francecentral.cloudapp.azure.com:8080/api/auth/register';
-
+//const API_URL = 'http://isra.francecentral.cloudapp.azure.com:8080/api/auth/register';
+const API_URL = 'http://localhost:8080/api/auth/register';
 export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -56,10 +56,10 @@ export default function RegisterForm() {
     try {
       // Payload que coincide exactamente con tu entidad Java
       const payload = {
-        username: formData.username.trim(),
+        nombreUsuario: formData.username.trim(),
         email: formData.email.trim(),
         nombre: formData.nombre.trim(),
-        contrasena: formData.password,     // ← nombre del campo en tu entidad
+        contrasena: formData.password,     
       };
 
       const response = await axios.post(API_URL, payload, {

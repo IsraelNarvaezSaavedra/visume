@@ -169,7 +169,7 @@ export default function Footer() {
             >
               <Heart className="text-pink-500 fill-pink-500" size={16} />
             </motion.div>
-            <span>y</span>
+            <span>e</span>
             <span className="bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent">
               Inteligencia Artificial
             </span>

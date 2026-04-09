@@ -1,22 +1,21 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import axios from 'axios';
 
-interface LoginFormProps {
-  onSubmit: (formData: { email: string; password: string }) => void;
-}
+//const API_URL = 'http://isra.francecentral.cloudapp.azure.com:8080/api/auth/login';
+const API_URL = 'http://localhost:8080/api/auth/login';
 
-export default function LoginForm({ onSubmit }: LoginFormProps) {
+export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -24,6 +23,29 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
       [e.target.name]: e.target.value,
     });
   };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validaciones básicas en frontend
+    if (!formData.email.trim() || !formData.password) {
+      setError('Por favor, completa todos los campos.');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const payload = {
+      
+    } catch (error) {
+      
+    }
+  };
+
+
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">

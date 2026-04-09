@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.visume.backend.dto.RegisterRequest;
 import com.visume.backend.entities.Usuarios;
 import com.visume.backend.service.UsuariosService;
 
@@ -21,10 +22,26 @@ public class UsuariosController {
     }
     
     @PostMapping("/register")
-    public ResponseEntity<?> registrar(@RequestBody Usuarios usuario) {
+    public ResponseEntity<?> registrar(@RequestBody RegisterRequest usuario) {
         try {
-        	Usuarios nuevo = usuarioService.registrarUsuario(usuario);
+        	Usuarios nuevo = new Usuarios();
+        	nuevo.setContrasena(usuario.getContrasena());
+        	nuevo.setEmail(usuario.getEmail());
+        	nuevo.setNombre(usuario.getNombre());
+        	nuevo.setUsername(usuario.getNombreUsuario());
+        	usuarioService.registrarUsuario(nuevo);
+        	
             return ResponseEntity.ok("Usuario registrado con el nombre de usuario: " + nuevo.getUsername());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody Usuarios usuario) {
+        try {
+        	return null;
+            
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

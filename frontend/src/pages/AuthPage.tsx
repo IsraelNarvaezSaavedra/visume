@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 import LoginForm from '../components/auth/LoginForm';
 import RegisterForm from '../components/auth/RegisterForm';
-import SocialAuth from '../components/auth/SocialAuth';
+
 
 export default function AuthPage() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -95,9 +95,6 @@ export default function AuthPage() {
             ) : (
               <RegisterForm onSubmit={handleRegisterSubmit} />
             )}
-
-            {/* Social Auth */}
-            <SocialAuth />
           </div>
         </motion.div>
 
@@ -109,9 +106,9 @@ export default function AuthPage() {
           className="mt-8 grid grid-cols-3 gap-4"
         >
           {[
-            { label: 'Currículums ilimitados', icon: '∞' },
             { label: 'Sincronización en la nube', icon: '☁️' },
-            { label: 'Plantillas premium', icon: '⭐' },
+            { label: 'Currículums premium', icon: '⭐' },
+            { label: 'Máxima velocidad', icon: '🌀' }
           ].map((feature, idx) => (
             <div
               key={idx}
