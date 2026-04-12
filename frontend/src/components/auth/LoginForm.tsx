@@ -24,9 +24,9 @@ export default function LoginForm() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validaciones básicas en frontend
     if (!formData.email.trim() || !formData.password) {
       setError('Por favor, completa todos los campos.');
@@ -39,9 +39,37 @@ export default function LoginForm() {
 
     try {
       const payload = {
+        email: formData.email.trim(),
+        contrasena: formData.password
+      };
+
+      const response = await axios.post(API_URL, payload, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      setSuccess('Sesión iniciada correctamente.');
+      //Limpiar el formulario después de un inicio de sesión exitoso
+      setFormData({ email: '', password: '' });
+      setShowPassword(false);
+
+    } catch (err: any) {
+      let mensaje = 'Error al iniciar sesión. Intenta nuevamente.';
+
+      if (err.response?.data) {
+        // Manejo típico de errores de Spring 
+        if (typeof err.response.data === 'string') {
+          mensaje = err.response.data;
+        } else if (err.response.data.message) {
+          mensaje = 'Error al iniciar sesión. Intenta nuevamente.';
+        } else if (err.response.data.includes('unique')) {
+          mensaje = 'El email o nombre de usuario ya está registrado.';
+        }
+        setError(mensaje);
+        console.error('Error en login: ', err);
+      }
       
-    } catch (error) {
-      
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -114,9 +142,30 @@ export default function LoginForm() {
         </button>
       </div>
 
+      {/* Mensajes de feedback */}
+      {error && (
+        <motion.p
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-red-400 text-sm text-center pt-2"
+        >
+          {error}
+        </motion.p>
+      )}
+
+      {success && (
+        <motion.p
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-green-400 text-sm text-center pt-2"
+        >
+          {success}
+        </motion.p>
+      )}
+
       <motion.button
         type="submit"
-        whileHover={{ 
+        whileHover={{
           scale: 1.02,
           boxShadow: '0 0 30px rgba(6, 182, 212, 0.6)'
         }}

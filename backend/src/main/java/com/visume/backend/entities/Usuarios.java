@@ -99,6 +99,24 @@ public class Usuarios {
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }
+    
+    public Rol getRol() {
+        return rol;
+    }
+
+    public void setRol(Rol rol) {
+        this.rol = rol;
+    }
+    
+    
+    public LocalDateTime getFechaRegistro() {
+        return fechaRegistro;
+    }
+
+    public void setFechaRegistro(LocalDateTime fechaRegistro) {
+        this.fechaRegistro = fechaRegistro;
+    }
+    
  /*
     public String getProfesion() {
         return profesion;
@@ -108,13 +126,7 @@ public class Usuarios {
         this.profesion = profesion;
     }
 
-    public LocalDateTime getFechaRegistro() {
-        return fechaRegistro;
-    }
-
-    public void setFechaRegistro(LocalDateTime fechaRegistro) {
-        this.fechaRegistro = fechaRegistro;
-    }
+    
 
     public boolean isEstaPagando() {
         return estaPagando;
@@ -140,13 +152,6 @@ public class Usuarios {
         this.publicarCurriculum = publicarCurriculum;
     }
 
-    public Rol getRol() {
-        return rol;
-    }
-
-    public void setRol(Rol rol) {
-        this.rol = rol;
-    }
 
     public String getFotoUrl() {
         return fotoUrl;

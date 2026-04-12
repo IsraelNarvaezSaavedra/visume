@@ -81,7 +81,7 @@ export default function RegisterForm() {
       let mensaje = 'Error al crear la cuenta. Intenta nuevamente.';
 
       if (err.response?.data) {
-        // Manejo típico de errores de Spring (puedes personalizar según lo que devuelva tu backend)
+        // Manejo típico de errores de Spring 
         if (typeof err.response.data === 'string') {
           mensaje = err.response.data;
         } else if (err.response.data.message) {

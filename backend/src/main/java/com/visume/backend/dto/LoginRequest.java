@@ -1,23 +1,23 @@
 package com.visume.backend.dto;
 
-import jakarta.validation.constraints.Email;
+
 import jakarta.validation.constraints.NotBlank;
 
 public class LoginRequest {
     
-    @NotBlank(message = "El nombre de usuario o email es obligatorio")
-    private String nombreUsuario;
+    @NotBlank(message = "El  email es obligatorio")
+    private String email;
     
     @NotBlank(message = "La contraseña es obligatoria")
     private String contrasena;
     
     // Getters y Setters
-    public String getNombreUsuario() {
-        return nombreUsuario;
+    public String getEmail() {
+        return email;
     }
     
-    public void setNombreUsuario(String nombreUsuario) {
-        this.nombreUsuario = nombreUsuario;
+    public void setEmail(String email) {
+        this.email = email;
     }
     
     public String getContrasena() {
