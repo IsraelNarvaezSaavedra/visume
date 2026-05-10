@@ -1,5 +1,8 @@
 package com.visume.backend.entities;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,6 +15,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "planes")
 public class Planes {
@@ -37,78 +42,11 @@ public class Planes {
     private LocalDateTime creadoEn;
 
     // Relaciones OneToMany
-    /*
     @OneToMany(mappedBy = "plan")
     private List<Usuarios> usuarios;
-    */
 
     @OneToMany(mappedBy = "plan")
     private List<Pagos> pagos;
 
-    // Getters y Setters
-    public Integer getIdPlan() {
-        return idPlan;
-    }
-
-    public void setIdPlan(Integer idPlan) {
-        this.idPlan = idPlan;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public BigDecimal getPrecio() {
-        return precio;
-    }
-
-    public void setPrecio(BigDecimal precio) {
-        this.precio = precio;
-    }
-
-    public String getMetodoPago() {
-        return metodoPago;
-    }
-
-    public void setMetodoPago(String metodoPago) {
-        this.metodoPago = metodoPago;
-    }
-
-    public String getDescripcion() {
-        return descripcion;
-    }
-
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
-
-    public LocalDateTime getCreadoEn() {
-        return creadoEn;
-    }
-
-    public void setCreadoEn(LocalDateTime creadoEn) {
-        this.creadoEn = creadoEn;
-    }
-
-/*
-    public List<Usuarios> getUsuarios() {
-        return usuarios;
-    }
-
-    public void setUsuarios(List<Usuarios> usuarios) {
-        this.usuarios = usuarios;
-    }
-*/
-
-    public List<Pagos> getPagos() {
-        return pagos;
-    }
-
-    public void setPagos(List<Pagos> pagos) {
-        this.pagos = pagos;
-    }
+    
 }

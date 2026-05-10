@@ -1,5 +1,8 @@
 package com.visume.backend.entities;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -10,6 +13,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "curriculums_metadatos")
 public class CurriculumsMetadatos {
@@ -43,76 +48,5 @@ public class CurriculumsMetadatos {
     @Column(name = "ultima_extraccion", nullable = false)
     private LocalDateTime ultimaExtraccion;
 
-    // Getters y Setters
-    public Integer getCurriculumId() {
-        return curriculumId;
-    }
-
-    public void setCurriculumId(Integer curriculumId) {
-        this.curriculumId = curriculumId;
-    }
-
-    public Curriculums getCurriculum() {
-        return curriculum;
-    }
-
-    public void setCurriculum(Curriculums curriculum) {
-        this.curriculum = curriculum;
-    }
-
-    public String getSkills() {
-        return skills;
-    }
-
-    public void setSkills(String skills) {
-        this.skills = skills;
-    }
-
-    public String getSector() {
-        return sector;
-    }
-
-    public void setSector(String sector) {
-        this.sector = sector;
-    }
-
-    public Integer getAnosExperiencia() {
-        return anosExperiencia;
-    }
-
-    public void setAnosExperiencia(Integer anosExperiencia) {
-        this.anosExperiencia = anosExperiencia;
-    }
-
-    public String getNivelIngles() {
-        return nivelIngles;
-    }
-
-    public void setNivelIngles(String nivelIngles) {
-        this.nivelIngles = nivelIngles;
-    }
-
-    public String getUbicacion() {
-        return ubicacion;
-    }
-
-    public void setUbicacion(String ubicacion) {
-        this.ubicacion = ubicacion;
-    }
-
-    public String getPalabrasClave() {
-        return palabrasClave;
-    }
-
-    public void setPalabrasClave(String palabrasClave) {
-        this.palabrasClave = palabrasClave;
-    }
-
-    public LocalDateTime getUltimaExtraccion() {
-        return ultimaExtraccion;
-    }
-
-    public void setUltimaExtraccion(LocalDateTime ultimaExtraccion) {
-        this.ultimaExtraccion = ultimaExtraccion;
-    }
+    
 }

@@ -1,5 +1,8 @@
 package com.visume.backend.entities;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -13,6 +16,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "curriculum_secciones", uniqueConstraints = {
     @UniqueConstraint(name = "uk_seccion_orden", columnNames = {"curriculum_id", "tipo_seccion", "orden"})
@@ -46,68 +51,5 @@ public class CurriculumSecciones {
     @Column(name = "actualizado_en", nullable = false)
     private LocalDateTime actualizadoEn;
 
-    // Getters y Setters
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Curriculums getCurriculum() {
-        return curriculum;
-    }
-
-    public void setCurriculum(Curriculums curriculum) {
-        this.curriculum = curriculum;
-    }
-
-    public String getTipoSeccion() {
-        return tipoSeccion;
-    }
-
-    public void setTipoSeccion(String tipoSeccion) {
-        this.tipoSeccion = tipoSeccion;
-    }
-
-    public Integer getOrden() {
-        return orden;
-    }
-
-    public void setOrden(Integer orden) {
-        this.orden = orden;
-    }
-
-    public String getTituloSeccion() {
-        return tituloSeccion;
-    }
-
-    public void setTituloSeccion(String tituloSeccion) {
-        this.tituloSeccion = tituloSeccion;
-    }
-
-    public String getDatos() {
-        return datos;
-    }
-
-    public void setDatos(String datos) {
-        this.datos = datos;
-    }
-
-    public LocalDateTime getCreadoEn() {
-        return creadoEn;
-    }
-
-    public void setCreadoEn(LocalDateTime creadoEn) {
-        this.creadoEn = creadoEn;
-    }
-
-    public LocalDateTime getActualizadoEn() {
-        return actualizadoEn;
-    }
-
-    public void setActualizadoEn(LocalDateTime actualizadoEn) {
-        this.actualizadoEn = actualizadoEn;
-    }
+    
 }

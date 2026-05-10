@@ -1,5 +1,8 @@
 package com.visume.backend.entities;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,6 +17,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "pagos")
 public class Pagos {
@@ -23,11 +28,9 @@ public class Pagos {
     @Column(name = "id_pago")
     private Integer idPago;
 
-/*
     @ManyToOne
     @JoinColumn(name = "nombre_usuario", nullable = false, foreignKey = @ForeignKey(name = "fk_pagos_usuarios"))
     private Usuarios usuario;
-*/
 
     @ManyToOne
     @JoinColumn(name = "id_plan", nullable = false, foreignKey = @ForeignKey(name = "fk_pagos_planes"))
@@ -54,86 +57,5 @@ public class Pagos {
     @Column(name = "notas", columnDefinition = "TEXT")
     private String notas;
 
-    // Getters y Setters
-    public Integer getIdPago() {
-        return idPago;
-    }
-
-    public void setIdPago(Integer idPago) {
-        this.idPago = idPago;
-    }
-
-/*
-    public Usuarios getUsuario() {
-        return usuario;
-    }
-
-    public void setUsuario(Usuarios usuario) {
-        this.usuario = usuario;
-    }
-*/
-
-    public Planes getPlan() {
-        return plan;
-    }
-
-    public void setPlan(Planes plan) {
-        this.plan = plan;
-    }
-
-    public BigDecimal getMonto() {
-        return monto;
-    }
-
-    public void setMonto(BigDecimal monto) {
-        this.monto = monto;
-    }
-
-    public String getMetodoPago() {
-        return metodoPago;
-    }
-
-    public void setMetodoPago(String metodoPago) {
-        this.metodoPago = metodoPago;
-    }
-
-    public String getEstado() {
-        return estado;
-    }
-
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
-
-    public LocalDateTime getFechaPago() {
-        return fechaPago;
-    }
-
-    public void setFechaPago(LocalDateTime fechaPago) {
-        this.fechaPago = fechaPago;
-    }
-
-    public LocalDate getFechaVencimiento() {
-        return fechaVencimiento;
-    }
-
-    public void setFechaVencimiento(LocalDate fechaVencimiento) {
-        this.fechaVencimiento = fechaVencimiento;
-    }
-
-    public String getTransaccionId() {
-        return transaccionId;
-    }
-
-    public void setTransaccionId(String transaccionId) {
-        this.transaccionId = transaccionId;
-    }
-
-    public String getNotas() {
-        return notas;
-    }
-
-    public void setNotas(String notas) {
-        this.notas = notas;
-    }
+    
 }

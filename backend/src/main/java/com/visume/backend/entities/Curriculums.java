@@ -1,5 +1,8 @@
 package com.visume.backend.entities;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,6 +18,8 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "curriculums")
 public class Curriculums {
@@ -28,11 +33,9 @@ public class Curriculums {
     @JoinColumn(name = "id_prompt", nullable = false, foreignKey = @ForeignKey(name = "fk_curriculums_prompts"))
     private Prompts prompt;
 
-/*
     @ManyToOne
     @JoinColumn(name = "nombre_usuario", nullable = false, foreignKey = @ForeignKey(name = "fk_curriculums_usuarios"))
     private Usuarios usuario;
-*/
 
     @Column(name = "titulo", length = 150, nullable = false)
     private String titulo;
@@ -67,110 +70,5 @@ public class Curriculums {
     @OneToOne(mappedBy = "curriculum")
     private CurriculumsMetadatos metadatos;
 
-    // Getters y Setters
-    public Integer getIdCurriculum() {
-        return idCurriculum;
-    }
-
-    public void setIdCurriculum(Integer idCurriculum) {
-        this.idCurriculum = idCurriculum;
-    }
-
-    public Prompts getPrompt() {
-        return prompt;
-    }
-
-    public void setPrompt(Prompts prompt) {
-        this.prompt = prompt;
-    }
-
-/*
-    public Usuarios getUsuario() {
-        return usuario;
-    }
-
-    public void setUsuario(Usuarios usuario) {
-        this.usuario = usuario;
-    }
-*/
-
-    public String getTitulo() {
-        return titulo;
-    }
-
-    public void setTitulo(String titulo) {
-        this.titulo = titulo;
-    }
-
-    public String getContenido() {
-        return contenido;
-    }
-
-    public void setContenido(String contenido) {
-        this.contenido = contenido;
-    }
-
-    public String getUrlWeb() {
-        return urlWeb;
-    }
-
-    public void setUrlWeb(String urlWeb) {
-        this.urlWeb = urlWeb;
-    }
-
-    public LocalDateTime getFechaCreacion() {
-        return fechaCreacion;
-    }
-
-    public void setFechaCreacion(LocalDateTime fechaCreacion) {
-        this.fechaCreacion = fechaCreacion;
-    }
-
-    public boolean isPublicado() {
-        return publicado;
-    }
-
-    public void setPublicado(boolean publicado) {
-        this.publicado = publicado;
-    }
-
-    public String getIdioma() {
-        return idioma;
-    }
-
-    public void setIdioma(String idioma) {
-        this.idioma = idioma;
-    }
-
-    public Plantillas getPlantilla() {
-        return plantilla;
-    }
-
-    public void setPlantilla(Plantillas plantilla) {
-        this.plantilla = plantilla;
-    }
-
-    public List<CurriculumsVersiones> getVersiones() {
-        return versiones;
-    }
-
-    public void setVersiones(List<CurriculumsVersiones> versiones) {
-        this.versiones = versiones;
-    }
-
-    public List<CurriculumSecciones> getSecciones() {
-        return secciones;
-    }
-
-    public void setSecciones(List<CurriculumSecciones> secciones) {
-        this.secciones = secciones;
-    }
-
-    public CurriculumsMetadatos getMetadatos() {
-        return metadatos;
-    }
-
-    public void setMetadatos(CurriculumsMetadatos metadatos) {
-        this.metadatos = metadatos;
-    }
+    
 }
