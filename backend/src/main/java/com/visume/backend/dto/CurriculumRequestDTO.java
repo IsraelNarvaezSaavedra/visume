@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class CurriculumRequestDTO {
-    private String prompt;       
-    private String plan;         
+    private String prompt;
+    private String plan;
 }
