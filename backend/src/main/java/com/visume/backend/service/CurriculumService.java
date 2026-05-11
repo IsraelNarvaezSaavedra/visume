@@ -61,6 +61,7 @@ public class CurriculumService {
         curriculum.setPublicado(false);
         curriculum.setIdioma("es");
         curriculumsRepo.save(curriculum);
+        curriculumsRepo.flush();
 
         // 4. Guardamos cada sección
         guardarSeccion(curriculum, "personalInfo", geminiResponse.getPersonalInfo(), 1);
@@ -76,11 +77,11 @@ public class CurriculumService {
 
         // 5. Guardamos los metadatos (para la búsqueda en la galería)
         CurriculumsMetadatos metadatos = new CurriculumsMetadatos();
-        metadatos.setCurriculumId(curriculum.getIdCurriculum());
         metadatos.setCurriculum(curriculum);
         metadatos.setSkills(String.join(",", geminiResponse.getSkills()));
         metadatos.setUbicacion(geminiResponse.getPersonalInfo().getLocation());
         metadatos.setUltimaExtraccion(LocalDateTime.now());
+        System.out.println("ID curriculum: " + curriculum.getIdCurriculum());
         metadatosRepo.save(metadatos);
 
         return geminiResponse;

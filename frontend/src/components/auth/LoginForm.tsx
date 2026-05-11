@@ -37,13 +37,10 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
     setError(null);
 
     try {
-      console.log('📤 Enviando petición...');
       const response = await axios.post(API_URL, {
         email: formData.email.trim(),
         contrasena: formData.password,
       });
-      console.log('📥 Respuesta:', response.data);
-
       const data = response.data;
       login(data.token, {
         username: data.nombreUsuario,
@@ -51,12 +48,8 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         nombre: data.nombre,
         estaPagando: data.estaPagando,
       });
-
-      console.log('✅ Redirigiendo...');
       onLoginSuccess();
-
     } catch (err: any) {
-      console.error('❌ Error:', err);
       setError(err.response?.data || 'El correo o la contraseña son incorrectos.');
     } finally {
       setLoading(false);

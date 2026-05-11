@@ -37,9 +37,9 @@ public class CurriculumController {
     // Plan gratuito: respuesta completa de una vez
     @PostMapping("/generate")
     public ResponseEntity<CurriculumResponseDTO> generate(@RequestBody CurriculumRequestDTO request,
-                                                          @AuthenticationPrincipal UserDetails userDetails) {
+                                                          @AuthenticationPrincipal String username) {
         try {
-            Usuarios usuario = usuariosRepo.findByUsername(userDetails.getUsername())
+            Usuarios usuario = usuariosRepo.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
             // Forzamos el plan según lo que tiene el usuario en BD
@@ -48,6 +48,7 @@ public class CurriculumController {
             CurriculumResponseDTO response = curriculumService.generarYGuardar(request, usuario);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }

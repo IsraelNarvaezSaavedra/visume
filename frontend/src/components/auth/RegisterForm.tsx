@@ -54,7 +54,6 @@ export default function RegisterForm() {
     setSuccess(null);
 
     try {
-      // Payload que coincide exactamente con tu entidad Java
       const payload = {
         nombreUsuario: formData.username.trim(),
         email: formData.email.trim(),

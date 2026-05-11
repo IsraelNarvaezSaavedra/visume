@@ -10,6 +10,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
@@ -24,6 +25,7 @@ public class CurriculumsMetadatos {
     private Integer curriculumId;
 
     @OneToOne
+    @MapsId
     @JoinColumn(name = "curriculum_id", nullable = false, foreignKey = @ForeignKey(name = "fk_metadatos_curriculums"))
     private Curriculums curriculum;
 

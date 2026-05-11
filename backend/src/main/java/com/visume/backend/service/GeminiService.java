@@ -27,74 +27,82 @@ public class GeminiService {
     }
 
     private String buildSystemPrompt(String plan) {
-        String base = """
-            Eres un experto en diseño de curriculums y portfolios profesionales.
-            El usuario te va a describir quién es, su experiencia, habilidades y preferencias visuales.
-            
-            Tu tarea es extraer y estructurar toda esa información y devolverla ÚNICAMENTE en formato JSON,
-            sin ningún texto adicional, sin bloques de código markdown, solo el JSON puro.
-            
-            El JSON debe seguir exactamente esta estructura:
+    String base = """
+        Eres un redactor experto en currículums profesionales de alto impacto.
+        
+        El usuario te va a describir su perfil profesional. Tu tarea es:
+        1. Extraer TODA la información mencionada sin omitir nada
+        2. Redactar los textos en PRIMERA PERSONA (yo lideré, desarrollé, gestioné...)
+        3. Enriquecer y mejorar el lenguaje sin inventar datos nuevos
+        4. Usar verbos de acción potentes (lideré, implementé, optimicé, escalé...)
+        5. Mantener los números y métricas exactas que mencione el usuario (45%, $2M, etc.)
+        
+        IMPORTANTE: No omitas ninguna experiencia, habilidad o dato que mencione el usuario.
+        Si menciona varias empresas, inclúyelas TODAS. Si menciona habilidades, inclúyelas TODAS.
+        
+        Devuelve ÚNICAMENTE el siguiente JSON sin texto adicional, sin bloques markdown:
+        {
+          "personalInfo": {
+            "name": "",
+            "title": "",
+            "bio": "párrafo en primera persona, máximo 4 líneas, impactante",
+            "email": "",
+            "phone": "",
+            "location": "",
+            "linkedin": "",
+            "github": "",
+            "website": ""
+          },
+          "experience": [
             {
-              "personalInfo": {
-                "name": "",
-                "title": "",
-                "bio": "",
-                "email": "",
-                "phone": "",
-                "location": "",
-                "linkedin": "",
-                "github": "",
-                "website": ""
-              },
-              "experience": [
-                {
-                  "company": "",
-                  "position": "",
-                  "startDate": "",
-                  "endDate": "",
-                  "description": ""
-                }
-              ],
-              "education": [
-                {
-                  "institution": "",
-                  "degree": "",
-                  "startDate": "",
-                  "endDate": ""
-                }
-              ],
-              "skills": ["skill1", "skill2"],
-              "projects": [
-                {
-                  "name": "",
-                  "description": "",
-                  "technologies": [],
-                  "url": ""
-                }
-              ],
-              "style": {
-                "primaryColor": "#hexcolor",
-                "secondaryColor": "#hexcolor",
-                "template": "minimal|modern|creative",
-                "font": "inter|playfair|roboto"
-              }
+              "company": "",
+              "position": "",
+              "startDate": "",
+              "endDate": "",
+              "description": "2-3 frases en primera persona con logros y métricas"
             }
-            
-            Completa los campos que puedas inferir del texto del usuario.
-            Deja vacíos ("") los que no mencione.
-            El campo 'bio' debe ser una descripción profesional mejorada y pulida basada en lo que diga el usuario.
-            Infiere los colores del estilo que pida el usuario.
-            """;
-
-        if ("free".equals(plan)) {
-            base += "\nNOTA: Plan gratuito. No incluyas proyectos ni URLs de imágenes.";
-        } else {
-            base += "\nNOTA: Plan premium. Incluye todos los campos y enriquece al máximo el contenido.";
+          ],
+          "education": [
+            {
+              "institution": "",
+              "degree": "",
+              "startDate": "",
+              "endDate": ""
+            }
+          ],
+          "skills": ["skill1", "skill2"],
+          "projects": [
+            {
+              "name": "",
+              "description": "",
+              "technologies": [],
+              "url": ""
+            }
+          ],
+          "style": {
+            "primaryColor": "#hexcolor",
+            "secondaryColor": "#hexcolor",
+            "template": "minimal|modern|creative",
+            "font": "inter|playfair|roboto"
+          }
         }
+        
+        Reglas de redacción:
+        - bio: primera persona, tono profesional y directo ("Soy un Senior PM con 10 años...")
+        - experience.description: primera persona, incluye logros cuantificables
+        - NO uses tercera persona nunca
+        - NO inventes datos, empresas, fechas ni habilidades
+        - SÍ infiere el color/estilo si el usuario lo menciona
+        """;
 
-        return base;
+    if ("free".equals(plan)) {
+        base += "\nPlan gratuito: no incluyas proyectos.";
+    } else {
+        base += "\nPlan premium: incluye todos los campos y máximo detalle.";
     }
+
+    return base;
+}
 
     // Streaming — devuelve chunks de texto según llegan
     public Flux<String> generateCurriculumStream(CurriculumRequestDTO request) {

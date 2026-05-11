@@ -7,13 +7,20 @@ import GeneratorPage from "./pages/GeneratorPage";
 import EditorPage from "./pages/EditorPage";
 import GalleryPage from "./pages/GalleryPage";
 import AuthPage from "./pages/AuthPage";
+import { useAuth } from "./context/AuthContext";
 
 export default function App() {
   const [currentSection, setCurrentSection] = useState("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [generatedResume, setGeneratedResume] = useState<any>(null);
+  const { isAuthenticated, usuario, logout } = useAuth();
 
   const scrollToSection = (section: string) => {
+    if (section === "generator" && !isAuthenticated) {
+      setCurrentSection("auth");
+      setMobileMenuOpen(false);
+      return;
+    }
     setCurrentSection(section);
     setMobileMenuOpen(false);
   };
@@ -23,19 +30,29 @@ export default function App() {
     setCurrentSection("editor");
   };
 
+  const handleLoginSuccess = () => {
+    setCurrentSection("generator");
+  };
+
+  const handleLogout = () => {
+    logout();
+    setCurrentSection("home");
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-white overflow-x-hidden">
       <ParticlesBackground />
 
-      {/* Navegación fija */}
       <Navbar
         currentSection={currentSection}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
         scrollToSection={scrollToSection}
+        isAuthenticated={isAuthenticated}
+        usuario={usuario}
+        onLogout={handleLogout}
       />
 
-      {/* Contenido principal */}
       <main className="pt-20">
         {currentSection === "home" && (
           <HomePage onGetStarted={() => scrollToSection("generator")} />
@@ -51,7 +68,9 @@ export default function App() {
 
         {currentSection === "gallery" && <GalleryPage />}
 
-        {currentSection === "auth" && <AuthPage />}
+        {currentSection === "auth" && (
+          <AuthPage onLoginSuccess={handleLoginSuccess} />
+        )}
       </main>
 
       <Footer />
