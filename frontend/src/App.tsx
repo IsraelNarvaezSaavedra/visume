@@ -7,6 +7,7 @@ import GeneratorPage from "./pages/GeneratorPage";
 import EditorPage from "./pages/EditorPage";
 import GalleryPage from "./pages/GalleryPage";
 import AuthPage from "./pages/AuthPage";
+import ProfilePage from "./pages/ProfilePage";
 import { useAuth } from "./context/AuthContext";
 
 export default function App() {
@@ -17,6 +18,11 @@ export default function App() {
 
   const scrollToSection = (section: string) => {
     if (section === "generator" && !isAuthenticated) {
+      setCurrentSection("auth");
+      setMobileMenuOpen(false);
+      return;
+    }
+    if (section === "profile" && !isAuthenticated) {
       setCurrentSection("auth");
       setMobileMenuOpen(false);
       return;
@@ -42,7 +48,6 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-950 text-white overflow-x-hidden">
       <ParticlesBackground />
-
       <Navbar
         currentSection={currentSection}
         mobileMenuOpen={mobileMenuOpen}
@@ -50,29 +55,15 @@ export default function App() {
         scrollToSection={scrollToSection}
         isAuthenticated={isAuthenticated}
         usuario={usuario}
-        onLogout={handleLogout}
       />
-
       <main className="pt-20">
-        {currentSection === "home" && (
-          <HomePage onGetStarted={() => scrollToSection("generator")} />
-        )}
-
-        {currentSection === "generator" && (
-          <GeneratorPage onGenerate={handleGenerate} />
-        )}
-
-        {currentSection === "editor" && (
-          <EditorPage resumeData={generatedResume} />
-        )}
-
+        {currentSection === "home" && <HomePage onGetStarted={() => scrollToSection("generator")} />}
+        {currentSection === "generator" && <GeneratorPage onGenerate={handleGenerate} />}
+        {currentSection === "editor" && <EditorPage resumeData={generatedResume} />}
         {currentSection === "gallery" && <GalleryPage />}
-
-        {currentSection === "auth" && (
-          <AuthPage onLoginSuccess={handleLoginSuccess} />
-        )}
+        {currentSection === "auth" && <AuthPage onLoginSuccess={handleLoginSuccess} />}
+        {currentSection === "profile" && <ProfilePage onNavigate={scrollToSection} onLogout={handleLogout} />}
       </main>
-
       <Footer />
     </div>
   );

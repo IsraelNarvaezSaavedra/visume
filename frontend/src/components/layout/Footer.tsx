@@ -107,47 +107,13 @@ export default function Footer() {
           ))}
         </div>
 
-        {/* Newsletter */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-12 p-6 rounded-2xl bg-gradient-to-r from-cyan-500/10 to-violet-500/10 border border-cyan-500/30 backdrop-blur-sm"
-        >
-          <div className="max-w-2xl mx-auto text-center">
-            <h3 className="mb-3 text-xl bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent">
-              Mantente actualizado
-            </h3>
-            <p className="mb-6 text-slate-400">
-              Recibe las últimas noticias, plantillas y consejos profesionales directamente en tu correo
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="tu@email.com"
-                className="flex-1 px-4 py-3 rounded-lg bg-slate-950/50 border border-cyan-500/30 focus:border-cyan-500/50 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 text-white placeholder-slate-500 transition-all"
-              />
-              <motion.button
-                whileHover={{ 
-                  scale: 1.05,
-                  boxShadow: '0 0 20px rgba(6, 182, 212, 0.5)'
-                }}
-                whileTap={{ scale: 0.95 }}
-                className="px-6 py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-violet-600 hover:from-cyan-400 hover:to-violet-500 transition-all shadow-lg shadow-cyan-500/30"
-              >
-                Suscribirse
-              </motion.button>
-            </div>
-          </div>
-        </motion.div>
-
         {/* Línea divisoria con efecto neón */}
         <div className="mb-8 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
 
         {/* Copyright */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-500">
           <p>
-            © 2025 Visume. Todos los derechos reservados.
+            © 2026 Visume. Todos los derechos reservados.
           </p>
 
           <motion.div

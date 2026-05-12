@@ -38,6 +38,9 @@ public class Planes {
     @Column(name = "descripcion", columnDefinition = "TEXT")
     private String descripcion;
 
+    @Column(name = "max_curriculums", nullable = false)
+    private Integer maxCurriculums = 1;
+
     @Column(name = "creado_en", nullable = false)
     private LocalDateTime creadoEn;
 
@@ -48,5 +51,4 @@ public class Planes {
     @OneToMany(mappedBy = "plan")
     private List<Pagos> pagos;
 
-    
 }

@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { Menu, X, LogIn, LogOut, User } from "lucide-react";
+import { Menu, X, LogIn, User } from "lucide-react";
 import logo from "figma:asset/1d2887d0560c03701e2c49da822f19698caa5d77.png";
 
 interface NavbarProps {
@@ -9,31 +9,20 @@ interface NavbarProps {
   scrollToSection: (section: string) => void;
   isAuthenticated: boolean;
   usuario: { username: string; nombre: string; estaPagando: boolean } | null;
-  onLogout: () => void;
 }
 
 export default function Navbar({
-  currentSection,
-  mobileMenuOpen,
-  setMobileMenuOpen,
-  scrollToSection,
-  isAuthenticated,
-  usuario,
-  onLogout,
+  currentSection, mobileMenuOpen, setMobileMenuOpen,
+  scrollToSection, isAuthenticated, usuario,
 }: NavbarProps) {
   return (
-    <motion.nav
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-slate-950/70 border-b border-cyan-500/20"
-    >
+    <motion.nav initial={{ y: -100 }} animate={{ y: 0 }}
+      className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-slate-950/70 border-b border-cyan-500/20">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <motion.div
-            className="flex items-center gap-2 cursor-pointer"
-            onClick={() => scrollToSection("home")}
-            whileHover={{ scale: 1.05 }}
-          >
+
+          <motion.div className="flex items-center gap-2 cursor-pointer"
+            onClick={() => scrollToSection("home")} whileHover={{ scale: 1.05 }}>
             <div className="w-10 h-10 rounded-lg flex items-center justify-center">
               <img src={logo} alt="Visume Logo" className="w-full h-full object-contain" />
             </div>
@@ -42,121 +31,80 @@ export default function Navbar({
             </span>
           </motion.div>
 
-          {/* Desktop menu */}
-          <div className="hidden md:flex items-center gap-8">
+          {/* Desktop */}
+          <div className="hidden md:flex items-center gap-6">
             {[
               { id: "home", label: "Inicio" },
               { id: "generator", label: "Generador" },
               { id: "gallery", label: "Galería" },
             ].map((item) => (
-              <button
-                key={item.id}
-                onClick={() => scrollToSection(item.id)}
+              <button key={item.id} onClick={() => scrollToSection(item.id)}
                 className={`relative px-4 py-2 transition-all ${
-                  currentSection === item.id
-                    ? "text-cyan-400"
-                    : "text-white/70 hover:text-white"
-                }`}
-              >
+                  currentSection === item.id ? "text-cyan-400" : "text-white/70 hover:text-white"
+                }`}>
                 {item.label}
                 {currentSection === item.id && (
-                  <motion.div
-                    layoutId="activeSection"
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-500 to-violet-500"
-                  />
+                  <motion.div layoutId="activeSection"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-500 to-violet-500" />
                 )}
               </button>
             ))}
 
-            {/* Botón auth — cambia según si hay sesión */}
             {isAuthenticated && usuario ? (
+              // Logueado: solo el botón de perfil
+              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                onClick={() => scrollToSection("profile")}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg border border-cyan-500/30 hover:border-cyan-500/50 hover:bg-cyan-500/10 transition-all">
+                <User size={18} className="text-cyan-400" />
+                <span className="text-cyan-400">{usuario.nombre || usuario.username}</span>
+              </motion.button>
+            ) : (
+              // No logueado: login + comenzar
               <div className="flex items-center gap-3">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => scrollToSection("profile")}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg border border-cyan-500/30 hover:border-cyan-500/50 hover:bg-cyan-500/10 transition-all"
-                >
-                  <User size={18} className="text-cyan-400" />
-                  <span className="text-cyan-400">{usuario.nombre || usuario.username}</span>
+                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                  onClick={() => scrollToSection("auth")}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg border border-cyan-500/30 hover:border-cyan-500/50 hover:bg-cyan-500/10 transition-all">
+                  <LogIn size={18} />
+                  <span>Iniciar sesión</span>
                 </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={onLogout}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg border border-red-500/30 hover:border-red-500/50 hover:bg-red-500/10 text-red-400 transition-all"
-                >
-                  <LogOut size={18} />
-                  <span>Salir</span>
+                <motion.button whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(6,182,212,0.5)" }}
+                  whileTap={{ scale: 0.95 }} onClick={() => scrollToSection("generator")}
+                  className="px-6 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-violet-600 hover:from-cyan-400 hover:to-violet-500 transition-all shadow-lg shadow-cyan-500/30">
+                  Comenzar
                 </motion.button>
               </div>
-            ) : (
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => scrollToSection("auth")}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg border border-cyan-500/30 hover:border-cyan-500/50 hover:bg-cyan-500/10 transition-all"
-              >
-                <LogIn size={18} />
-                <span>Iniciar sesión</span>
-              </motion.button>
             )}
-
-            <motion.button
-              whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(6, 182, 212, 0.5)" }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => scrollToSection("generator")}
-              className="px-6 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-violet-600 hover:from-cyan-400 hover:to-violet-500 transition-all shadow-lg shadow-cyan-500/30"
-            >
-              Comenzar
-            </motion.button>
           </div>
 
-          {/* Mobile menu button */}
-          <button
-            className="md:hidden text-cyan-400"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
+          <button className="md:hidden text-cyan-400" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
 
-        {/* Mobile menu */}
+        {/* Mobile */}
         {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="md:hidden mt-4 p-4 rounded-lg bg-slate-900/90 backdrop-blur-md border border-cyan-500/20"
-          >
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
+            className="md:hidden mt-4 p-4 rounded-lg bg-slate-900/90 backdrop-blur-md border border-cyan-500/20">
             {[
               { id: "home", label: "Inicio" },
               { id: "generator", label: "Generador" },
               { id: "gallery", label: "Galería" },
             ].map((item) => (
-              <button
-                key={item.id}
-                onClick={() => scrollToSection(item.id)}
+              <button key={item.id} onClick={() => scrollToSection(item.id)}
                 className={`block w-full text-left px-4 py-3 rounded-lg transition-all ${
-                  currentSection === item.id
-                    ? "bg-cyan-500/20 text-cyan-400"
-                    : "text-white/70 hover:bg-slate-800"
-                }`}
-              >
+                  currentSection === item.id ? "bg-cyan-500/20 text-cyan-400" : "text-white/70 hover:bg-slate-800"
+                }`}>
                 {item.label}
               </button>
             ))}
             {isAuthenticated ? (
-              <button
-                onClick={onLogout}
-                className="block w-full text-left px-4 py-3 rounded-lg text-red-400 hover:bg-slate-800 transition-all"
-              >
-                Salir
+              <button onClick={() => scrollToSection("profile")}
+                className="block w-full text-left px-4 py-3 rounded-lg text-cyan-400 hover:bg-slate-800 transition-all">
+                Mi perfil
               </button>
             ) : (
-              <button
-                onClick={() => scrollToSection("auth")}
-                className="block w-full text-left px-4 py-3 rounded-lg text-white/70 hover:bg-slate-800 transition-all"
-              >
+              <button onClick={() => scrollToSection("auth")}
+                className="block w-full text-left px-4 py-3 rounded-lg text-white/70 hover:bg-slate-800 transition-all">
                 Iniciar sesión
               </button>
             )}
