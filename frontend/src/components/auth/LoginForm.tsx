@@ -3,8 +3,9 @@ import { motion } from 'motion/react';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
+import { apiUrl } from '../../config/api';
 
-const API_URL = 'http://localhost:8080/api/auth/login';
+const API_URL = apiUrl('/api/auth/login');
 
 interface LoginFormProps {
   onLoginSuccess: () => void;

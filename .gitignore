@@ -1,0 +1,17 @@
+# Dependencies
+**/node_modules/
+
+# Build outputs
+frontend/build/
+frontend/dist/
+**/target/
+
+# Local env and secrets (plantillas *.env.example sí pueden versionarse)
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Logs and OS noise
+*.log
+.DS_Store
+Thumbs.db

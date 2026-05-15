@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Sparkles, Zap, Crown, Loader2, ArrowRight, Check } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { apiUrl } from "../config/api";
 
 interface GeneratorProps {
   onGenerate: (data: any) => void;
@@ -23,7 +24,7 @@ export default function Generator({ onGenerate }: GeneratorProps) {
   const handleConfirmPlan = () => {
     if (!selectedPlan) return;
     if (selectedPlan === "premium") {
-      alert("Portal de pago próximamente 🚀");
+      alert("Portal de pago próximamente");
       return;
     }
     setPlan(selectedPlan);
@@ -36,7 +37,7 @@ export default function Generator({ onGenerate }: GeneratorProps) {
     setPreview(null);
 
     try {
-      const res = await fetch("http://localhost:8080/api/curriculum/generate", {
+      const res = await fetch(apiUrl("/api/curriculum/generate"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -85,25 +85,6 @@ export default function HowItWorks() {
             </motion.div>
           ))}
         </div>
-
-        {/* CTA adicional */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.8 }}
-          className="text-center mt-16"
-        >
-          <p className="text-slate-400 mb-4">¿Listo para comenzar?</p>
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="inline-block px-8 py-4 rounded-xl bg-gradient-to-r from-cyan-500/20 to-violet-500/20 border border-cyan-500/30 backdrop-blur-sm cursor-pointer"
-          >
-            <span className="bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent">
-              Es gratis, rápido y sin registro
-            </span>
-          </motion.div>
-        </motion.div>
       </div>
     </section>
   );

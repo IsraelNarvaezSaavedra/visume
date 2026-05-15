@@ -19,6 +19,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { apiUrl } from "../config/api";
 
 interface ProfileProps {
   onNavigate: (section: string) => void;
@@ -76,7 +77,7 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
 
   const cargarPerfil = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/perfil", {
+      const res = await fetch(apiUrl("/api/perfil"), {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Error cargando perfil");
@@ -98,7 +99,7 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
     setGuardando(true);
     setError(null);
     try {
-      const res = await fetch("http://localhost:8080/api/perfil", {
+      const res = await fetch(apiUrl("/api/perfil"), {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -126,7 +127,7 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
     setGuardando(true);
     setError(null);
     try {
-      const res = await fetch("http://localhost:8080/api/perfil", {
+      const res = await fetch(apiUrl("/api/perfil"), {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -151,7 +152,7 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
   const handleEliminarCurriculum = async (id: number) => {
     try {
       const res = await fetch(
-        `http://localhost:8080/api/perfil/curriculum/${id}`,
+        apiUrl(`/api/perfil/curriculum/${id}`),
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },

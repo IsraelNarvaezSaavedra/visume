@@ -3,9 +3,9 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Lock, User, AtSign, Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
+import { apiUrl } from '../../config/api';
 
-//const API_URL = 'http://isra.francecentral.cloudapp.azure.com:8080/api/auth/register';
-const API_URL = 'http://localhost:8080/api/auth/register';
+const API_URL = apiUrl('/api/auth/register');
 export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
