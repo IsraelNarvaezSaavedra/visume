@@ -3,32 +3,7 @@ import { Github, Twitter, Linkedin, Mail, Heart } from 'lucide-react';
 import logo from 'figma:asset/1d2887d0560c03701e2c49da822f19698caa5d77.png';
 
 export default function Footer() {
-  const links = {
-    producto: [
-      { label: 'Características', href: '#' },
-      { label: 'Precios', href: '#' },
-      { label: 'Ejemplos', href: '#' },
-      { label: 'Plantillas', href: '#' },
-    ],
-    recursos: [
-      { label: 'Documentación', href: '#' },
-      { label: 'Guías', href: '#' },
-      { label: 'Blog', href: '#' },
-      { label: 'API', href: '#' },
-    ],
-    empresa: [
-      { label: 'Sobre nosotros', href: '#' },
-      { label: 'Contacto', href: '#' },
-      { label: 'Carreras', href: '#' },
-      { label: 'Prensa', href: '#' },
-    ],
-    legal: [
-      { label: 'Privacidad', href: '#' },
-      { label: 'Términos', href: '#' },
-      { label: 'Cookies', href: '#' },
-      { label: 'Licencias', href: '#' },
-    ],
-  };
+
 
   const socialLinks = [
     { icon: Twitter, href: '#', label: 'Twitter' },
@@ -69,8 +44,8 @@ export default function Footer() {
                 <motion.a
                   key={social.label}
                   href={social.href}
-                  whileHover={{ 
-                    scale: 1.1, 
+                  whileHover={{
+                    scale: 1.1,
                     y: -2,
                     boxShadow: '0 0 20px rgba(6, 182, 212, 0.4)'
                   }}
@@ -85,26 +60,30 @@ export default function Footer() {
           </div>
 
           {/* Enlaces */}
-          {Object.entries(links).map(([category, items]) => (
-            <div key={category}>
+          <div className="lg:col-span-4 flex justify-end gap-12">
+            <div>
               <h3 className="mb-4 text-sm tracking-wide text-cyan-400 uppercase">
-                {category}
+                Visume
               </h3>
               <ul className="space-y-3">
-                {items.map((link) => (
-                  <li key={link.label}>
-                    <motion.a
-                      href={link.href}
-                      whileHover={{ x: 5 }}
-                      className="text-slate-400 hover:text-white transition-colors inline-block"
-                    >
-                      {link.label}
-                    </motion.a>
-                  </li>
-                ))}
+                <li>
+                  <a href="#home" className="text-slate-400 hover:text-white transition-colors inline-block">
+                    Inicio
+                  </a>
+                </li>
+                <li>
+                  <a href="#generator" className="text-slate-400 hover:text-white transition-colors inline-block">
+                    Generador
+                  </a>
+                </li>
+                <li>
+                  <a href="#profile" className="text-slate-400 hover:text-white transition-colors inline-block">
+                    Mi Perfil
+                  </a>
+                </li>
               </ul>
             </div>
-          ))}
+          </div>
         </div>
 
         {/* Línea divisoria con efecto neón */}
@@ -124,10 +103,10 @@ export default function Footer() {
           >
             <span>Hecho con</span>
             <motion.div
-              animate={{ 
+              animate={{
                 scale: [1, 1.2, 1],
               }}
-              transition={{ 
+              transition={{
                 duration: 1,
                 repeat: Infinity,
                 repeatType: "reverse"

@@ -46,8 +46,6 @@ public class Usuarios {
     @Column(name = "fecha_registro", nullable = false)
     private LocalDateTime fechaRegistro = LocalDateTime.now();
     
-    @Column(name = "publicar_curriculum", nullable = true)
-    private boolean publicarCurriculum;
     
     @Column(name = "profesion", length = 100)
     private String profesion;

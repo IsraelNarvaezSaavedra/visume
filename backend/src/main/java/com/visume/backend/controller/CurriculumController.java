@@ -21,7 +21,7 @@ public class CurriculumController {
     private final UsuariosRepository usuariosRepo;
 
     public CurriculumController(CurriculumService curriculumService,
-                                UsuariosRepository usuariosRepo) {
+            UsuariosRepository usuariosRepo) {
         this.curriculumService = curriculumService;
         this.usuariosRepo = usuariosRepo;
     }
@@ -29,7 +29,7 @@ public class CurriculumController {
     // Plan premium: streaming en tiempo real
     @PostMapping(value = "/generate/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<String> generateStream(@RequestBody CurriculumRequestDTO request,
-                                       @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetails userDetails) {
         // El plan lo sacamos del usuario autenticado
         return curriculumService.generarStream(request);
     }
@@ -37,7 +37,7 @@ public class CurriculumController {
     // Plan gratuito: respuesta completa de una vez
     @PostMapping("/generate")
     public ResponseEntity<CurriculumResponseDTO> generate(@RequestBody CurriculumRequestDTO request,
-                                                          @AuthenticationPrincipal String username) {
+            @AuthenticationPrincipal String username) {
         try {
             Usuarios usuario = usuariosRepo.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
@@ -52,4 +52,27 @@ public class CurriculumController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    @GetMapping("/{id}")
+public ResponseEntity<?> obtener(@PathVariable Integer id,
+                                  @AuthenticationPrincipal String username) {
+    try {
+        CurriculumResponseDTO response = curriculumService.obtenerCurriculum(id, username);
+        return ResponseEntity.ok(response);
+    } catch (Exception e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
+    }
+}
+@PutMapping("/{id}")
+public ResponseEntity<?> actualizar(@PathVariable Integer id,
+                                     @RequestBody CurriculumResponseDTO data,
+                                     @AuthenticationPrincipal String username) {
+    try {
+        curriculumService.actualizarSecciones(id, data, username);
+        return ResponseEntity.ok("Curriculum actualizado");
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.badRequest().body(e.getMessage());
+    }
+}
 }

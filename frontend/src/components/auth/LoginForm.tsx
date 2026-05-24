@@ -48,6 +48,7 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         email: data.email,
         nombre: data.nombre,
         estaPagando: data.estaPagando,
+        rol: data.rol,
       });
       onLoginSuccess();
     } catch (err: any) {

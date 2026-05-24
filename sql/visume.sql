@@ -22,7 +22,6 @@ CREATE TABLE IF NOT EXISTS usuarios (
     fecha_registro      DATETIME DEFAULT CURRENT_TIMESTAMP,
     esta_pagando        BOOLEAN DEFAULT FALSE,
     id_plan             INT NULL,
-    publicar_curriculum BOOLEAN DEFAULT FALSE,
     es_administrador    BOOLEAN DEFAULT FALSE,
     foto_url            VARCHAR(255) NULL,
     foto_actualizada    DATETIME NULL,
@@ -65,10 +64,7 @@ CREATE TABLE IF NOT EXISTS curriculums (
     nombre_usuario      VARCHAR(50) NOT NULL,
     titulo              VARCHAR(150) NOT NULL,
     contenido           TEXT NOT NULL,
-    url_web             VARCHAR(255) NULL UNIQUE,
     fecha_creacion      DATETIME DEFAULT CURRENT_TIMESTAMP,
-    publicado           BOOLEAN DEFAULT FALSE,
-    idioma              CHAR(2) NOT NULL DEFAULT 'es',
     id_plantilla        INT NULL,
 
     FOREIGN KEY (id_prompt)      REFERENCES prompts(id_prompt)
@@ -172,6 +168,5 @@ CREATE TABLE IF NOT EXISTS curriculum_secciones (
 
 
 -- Índices recomendados (no rompen nada, se pueden ejecutar siempre)
-CREATE INDEX IF NOT EXISTS idx_curriculum_publicado ON curriculums(publicado, url_web);
 CREATE INDEX IF NOT EXISTS idx_curriculum_usuario    ON curriculums(nombre_usuario);
 CREATE INDEX IF NOT EXISTS idx_pagos_usuario         ON pagos(nombre_usuario);

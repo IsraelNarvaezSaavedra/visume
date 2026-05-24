@@ -44,8 +44,6 @@ public class PerfilService {
                     r.setId(c.getIdCurriculum());
                     r.setTitulo(c.getTitulo());
                     r.setFechaCreacion(c.getFechaCreacion());
-                    r.setPublicado(c.isPublicado());
-                    r.setUrlWeb(c.getUrlWeb());
                     return r;
                 }).collect(Collectors.toList());
 

@@ -24,7 +24,5 @@ public class PerfilResponseDTO {
         private Integer id;
         private String titulo;
         private LocalDateTime fechaCreacion;
-        private boolean publicado;
-        private String urlWeb;
     }
 }

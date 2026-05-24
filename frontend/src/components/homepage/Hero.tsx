@@ -76,17 +76,6 @@ export default function Hero({ onGetStarted }: HeroProps) {
             <span className="text-lg">Crea tu currículum ahora</span>
             <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} />
           </motion.button>
-
-          <motion.button
-            whileHover={{ 
-              scale: 1.05,
-              backgroundColor: 'rgba(6, 182, 212, 0.1)'
-            }}
-            whileTap={{ scale: 0.95 }}
-            className="px-8 py-4 rounded-xl border-2 border-cyan-500/50 hover:border-cyan-400 transition-all backdrop-blur-sm"
-          >
-            <span className="text-lg">Ver ejemplos</span>
-          </motion.button>
         </motion.div>
 
         {/* Indicador visual */}

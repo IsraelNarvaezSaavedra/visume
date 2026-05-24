@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
@@ -43,17 +44,11 @@ public class Curriculums {
     @Column(name = "contenido", columnDefinition = "TEXT", nullable = false)
     private String contenido;
 
-    @Column(name = "url_web", length = 255, unique = true)
-    private String urlWeb;
-
     @Column(name = "fecha_creacion", nullable = false)
     private LocalDateTime fechaCreacion;
 
-    @Column(name = "publicado", nullable = false)
-    private boolean publicado;
-
-    @Column(name = "idioma", length = 2, nullable = false)
-    private String idioma;
+    @OneToMany(mappedBy = "curriculum", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CurriculumFotos> fotos;
 
     @ManyToOne
     @JoinColumn(name = "id_plantilla", nullable = true, foreignKey = @ForeignKey(name = "fk_curriculums_plantillas"))
@@ -70,5 +65,4 @@ public class Curriculums {
     @OneToOne(mappedBy = "curriculum")
     private CurriculumsMetadatos metadatos;
 
-    
 }

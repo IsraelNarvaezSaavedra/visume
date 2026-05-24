@@ -30,8 +30,6 @@ interface CurriculumResumen {
   id: number;
   titulo: string;
   fechaCreacion: string;
-  publicado: boolean;
-  urlWeb: string | null;
 }
 
 interface PerfilData {
@@ -59,6 +57,7 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
   const [exito, setExito] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [subiendoAvatar, setSubiendoAvatar] = useState(false);
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -118,6 +117,26 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
       setGuardando(false);
     }
   };
+  const handleSubirAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSubiendoAvatar(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("http://localhost:8080/api/files/avatar", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Error subiendo avatar");
+      cargarPerfil();
+    } catch (e) {
+      setError("Error subiendo la foto");
+    } finally {
+      setSubiendoAvatar(false);
+    }
+  };
 
   const handleCambiarPassword = async () => {
     if (passData.contrasenaNueva !== passData.confirmar) {
@@ -151,13 +170,10 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
 
   const handleEliminarCurriculum = async (id: number) => {
     try {
-      const res = await fetch(
-        apiUrl(`/api/perfil/curriculum/${id}`),
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
+      const res = await fetch(apiUrl(`/api/perfil/curriculum/${id}`), {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!res.ok) throw new Error("Error eliminando curriculum");
       setExito("Curriculum eliminado");
       setConfirmDelete(null);
@@ -187,65 +203,98 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
     <section className="relative min-h-screen py-24 px-4">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
-  <div className="flex items-center justify-between">
-    <div className="flex items-center gap-6"> {/* Aumentamos el gap con el avatar */}
-      
-      {/* Avatar — Con un toque más pulido */}
-      <div className="relative group">
-        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-500 to-violet-600 shadow-xl shadow-cyan-500/20 flex items-center justify-center transform transition-transform group-hover:scale-105">
-          <User size={32} className="text-white" />
-        </div>
-        {/* Badge de estado absoluto para no ocupar espacio en el flujo de texto */}
-        <div className="absolute -bottom-2 -right-2">
-          {perfil?.estaPagando ? (
-            <div className="bg-violet-600 p-1.5 rounded-lg border-2 border-slate-950 shadow-lg" title="Premium">
-              <Crown size={14} className="text-white" />
-            </div>
-          ) : (
-            <div className="bg-slate-700 p-1.5 rounded-lg border-2 border-slate-950 shadow-lg" title="Gratuito">
-              <Sparkles size={14} className="text-cyan-400" />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Información de usuario con mejor jerarquía */}
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">
-            {perfil?.nombre || perfil?.username}
-          </h1>
-          <span className="text-slate-500 font-medium text-sm bg-slate-800/50 px-2 py-0.5 rounded-md">
-            @{perfil?.username}
-          </span>
-        </div>
-        
-        <div className="flex items-center gap-4 text-slate-400 text-sm">
-          <span className="flex items-center gap-1.5">
-            <span className="w-1 h-1 rounded-full bg-cyan-500"></span>
-            {perfil?.email}
-          </span>
-          {perfil?.profesion && (
-            <span className="flex items-center gap-1.5 border-l border-slate-800 pl-4">
-              {perfil.profesion}
-            </span>
-          )}
-        </div>
-      </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-10"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              {" "}
+              {/* Avatar clickable */}
+<div className="relative group cursor-pointer">
+  <label htmlFor="avatar-upload" className="cursor-pointer">
+    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-500 to-violet-600 shadow-xl shadow-cyan-500/20 flex items-center justify-center overflow-hidden transform transition-transform group-hover:scale-105">
+      {perfil?.fotoUrl ? (
+        <img
+          src={`http://localhost:8080${perfil.fotoUrl}`}
+          alt="avatar"
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <User size={32} className="text-white" />
+      )}
     </div>
-
-    {/* Botón de Logout más estilizado */}
-    <motion.button 
-      whileHover={{ scale: 1.05 }} 
-      whileTap={{ scale: 0.95 }} 
-      onClick={onLogout}
-      className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-red-500/20 hover:border-red-500/40 hover:bg-red-500/10 text-red-400 transition-all text-sm font-medium"
-    >
-      <LogOut size={16} /> 
-      <span>Cerrar sesión</span>
-    </motion.button>
+    <div className="absolute inset-0 rounded-2xl bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+      <span className="text-white text-xs font-medium">Cambiar</span>
+    </div>
+  </label>
+  <input
+    id="avatar-upload"
+    type="file"
+    accept="image/*"
+    className="hidden"
+    onChange={handleSubirAvatar}
+    disabled={subiendoAvatar}
+  />
+  {subiendoAvatar && (
+    <div className="absolute inset-0 rounded-2xl bg-black/60 flex items-center justify-center">
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+        className="w-6 h-6 rounded-full border-2 border-white/20 border-t-white"
+      />
+    </div>
+  )}
+  {/* Badge de plan */}
+  <div className="absolute -bottom-2 -right-2">
+    {perfil?.estaPagando ? (
+      <div className="bg-violet-600 p-1.5 rounded-lg border-2 border-slate-950 shadow-lg" title="Premium">
+        <Crown size={14} className="text-white" />
+      </div>
+    ) : (
+      <div className="bg-slate-700 p-1.5 rounded-lg border-2 border-slate-950 shadow-lg" title="Gratuito">
+        <Sparkles size={14} className="text-cyan-400" />
+      </div>
+    )}
   </div>
+</div>
+              {/* Información de usuario con mejor jerarquía */}
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-3">
+                  <h1 className="text-3xl font-extrabold text-white tracking-tight">
+                    {perfil?.nombre || perfil?.username}
+                  </h1>
+                  <span className="text-slate-500 font-medium text-sm bg-slate-800/50 px-2 py-0.5 rounded-md">
+                    @{perfil?.username}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-4 text-slate-400 text-sm">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-1 h-1 rounded-full bg-cyan-500"></span>
+                    {perfil?.email}
+                  </span>
+                  {perfil?.profesion && (
+                    <span className="flex items-center gap-1.5 border-l border-slate-800 pl-4">
+                      {perfil.profesion}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Botón de Logout más estilizado */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={onLogout}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-red-500/20 hover:border-red-500/40 hover:bg-red-500/10 text-red-400 transition-all text-sm font-medium"
+            >
+              <LogOut size={16} />
+              <span>Cerrar sesión</span>
+            </motion.button>
+          </div>
 
           {/* Barra curriculums */}
           <div className="mt-6 p-4 rounded-2xl bg-slate-900/70 border border-cyan-500/20">
@@ -336,7 +385,7 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
         </div>
 
         <AnimatePresence mode="wait">
-          {/* Tab: Info — caja centrada y más estrecha */}
+          {/* Tab: Info */}
           {activeTab === "info" && (
             <motion.div
               key="info"
@@ -497,18 +546,19 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
                             { year: "numeric", month: "long", day: "numeric" },
                           )}
                         </p>
-                        <span
-                          className={`inline-block mt-2 px-2 py-0.5 rounded-full text-xs ${cv.publicado ? "bg-green-500/20 text-green-300 border border-green-500/30" : "bg-slate-700 text-slate-400"}`}
-                        >
-                          {cv.publicado ? "Publicado" : "Borrador"}
-                        </span>
                       </div>
 
                       <div className="flex items-center gap-2">
                         <motion.button
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
-                          onClick={() => onNavigate("editor")}
+                          onClick={() => {
+                            localStorage.setItem(
+                              "visume_current_cv_id",
+                              cv.id.toString(),
+                            );
+                            onNavigate("editor");
+                          }}
                           className="p-2 rounded-lg border border-cyan-500/30 hover:border-cyan-500/50 text-cyan-400 transition-all"
                         >
                           <Edit3 size={15} />

@@ -8,7 +8,7 @@ interface NavbarProps {
   setMobileMenuOpen: (open: boolean) => void;
   scrollToSection: (section: string) => void;
   isAuthenticated: boolean;
-  usuario: { username: string; nombre: string; estaPagando: boolean } | null;
+  usuario: { username: string; nombre: string; estaPagando: boolean; rol?: string } | null;
 }
 
 export default function Navbar({
@@ -36,7 +36,6 @@ export default function Navbar({
             {[
               { id: "home", label: "Inicio" },
               { id: "generator", label: "Generador" },
-              { id: "gallery", label: "Galería" },
             ].map((item) => (
               <button key={item.id} onClick={() => scrollToSection(item.id)}
                 className={`relative px-4 py-2 transition-all ${
@@ -49,6 +48,19 @@ export default function Navbar({
                 )}
               </button>
             ))}
+
+            {isAuthenticated && usuario?.rol === 'ADMINISTRADOR' && (
+              <button onClick={() => scrollToSection("admin")}
+                className={`relative px-4 py-2 transition-all ${
+                  currentSection === "admin" ? "text-cyan-400" : "text-white/70 hover:text-white"
+                }`}>
+                Panel Admin
+                {currentSection === "admin" && (
+                  <motion.div layoutId="activeSection"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-500 to-violet-500" />
+                )}
+              </button>
+            )}
 
             {isAuthenticated && usuario ? (
               // Logueado: solo el botón de perfil
@@ -88,7 +100,6 @@ export default function Navbar({
             {[
               { id: "home", label: "Inicio" },
               { id: "generator", label: "Generador" },
-              { id: "gallery", label: "Galería" },
             ].map((item) => (
               <button key={item.id} onClick={() => scrollToSection(item.id)}
                 className={`block w-full text-left px-4 py-3 rounded-lg transition-all ${
@@ -97,6 +108,14 @@ export default function Navbar({
                 {item.label}
               </button>
             ))}
+            {isAuthenticated && usuario?.rol === 'ADMINISTRADOR' && (
+              <button onClick={() => scrollToSection("admin")}
+                className={`block w-full text-left px-4 py-3 rounded-lg transition-all ${
+                  currentSection === "admin" ? "bg-cyan-500/20 text-cyan-400" : "text-white/70 hover:bg-slate-800"
+                }`}>
+                Panel Admin
+              </button>
+            )}
             {isAuthenticated ? (
               <button onClick={() => scrollToSection("profile")}
                 className="block w-full text-left px-4 py-3 rounded-lg text-cyan-400 hover:bg-slate-800 transition-all">

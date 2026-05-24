@@ -1,8 +1,11 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Palette, Type, Layout, Save, Download, Edit3, Check, X, Plus, Trash2 } from 'lucide-react';
 
-// ── Componente editable FUERA del Editor para evitar re-mounts ──
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { Palette, Type, Layout, Edit3, Image, Download, Globe, Award, Check, X, Plus, Save } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import CurriculumFotos from "./CurriculumFotos";
+
+// ── EditableText ────────────────────────────────────────────────
 interface EditableProps {
   value: string;
   onSave: (val: string) => void;
@@ -44,30 +47,43 @@ function EditableText({ value, onSave, className = '', style, multiline }: Edita
   );
 }
 
-type LayoutId = 'modern' | 'classic' | 'minimal';
-
-function mapIncomingTemplate(t?: string): LayoutId {
-  if (!t) return 'modern';
-  const u = String(t).toLowerCase();
-  if (u === 'minimal') return 'minimal';
-  if (u === 'creative' || u === 'classic') return 'classic';
-  return 'modern';
-}
-
-// ── Editor principal ────────────────────────────────────────────
+// ── Editor ──────────────────────────────────────────────────────
 interface EditorProps {
   resumeData: any;
 }
 
 export default function Editor({ resumeData }: EditorProps) {
-  const [activeTab, setActiveTab] = useState<'colors' | 'fonts' | 'layout' | 'content'>('colors');
+  const { token, plan, maxFotosCv } = useAuth();
+  const [activeTab, setActiveTab] = useState<'colors' | 'fonts' | 'layout' | 'content' | 'photos'>('colors');
   const [primaryColor, setPrimaryColor] = useState(resumeData?.style?.primaryColor || '#06b6d4');
   const [selectedFont, setSelectedFont] = useState(resumeData?.style?.font || 'Inter');
-  const [selectedLayout, setSelectedLayout] = useState<LayoutId>(() => mapIncomingTemplate(resumeData?.style?.template));
+  const [selectedLayout, setSelectedLayout] = useState(resumeData?.style?.template || 'modern');
   const [data, setData] = useState(resumeData);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [newSkill, setNewSkill] = useState('');
+  const [newSkillCategory, setNewSkillCategory] = useState<'technical' | 'soft' | 'tools'>('technical');
+const [loading, setLoading] = useState(!!resumeData?.id);
 
+useEffect(() => {
+  // Intenta usar el id del resumeData, o el guardado en localStorage
+  const id = resumeData?.id || localStorage.getItem('visume_current_cv_id');
+  if (!id) return;
+
+  setLoading(true);
+  fetch(`http://localhost:8080/api/curriculum/${id}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+    .then(res => res.json())
+    .then(loaded => {
+      setData(loaded);
+      setPrimaryColor(loaded?.style?.primaryColor || '#06b6d4');
+      setSelectedFont(loaded?.style?.font || 'Inter');
+      setSelectedLayout(loaded?.style?.template || 'modern');
+    })
+    .catch(console.error)
+    .finally(() => setLoading(false));
+}, []);
   const colorPresets = [
     { name: 'Cyan', value: '#06b6d4', gradient: 'from-cyan-500 to-blue-500' },
     { name: 'Violet', value: '#8b5cf6', gradient: 'from-violet-500 to-purple-500' },
@@ -85,10 +101,10 @@ export default function Editor({ resumeData }: EditorProps) {
     { name: 'Palatino', label: 'Palatino — Sofisticado' },
   ];
 
-  const layouts: { id: LayoutId; label: string; desc: string }[] = [
-    { id: 'modern', label: 'Moderno', desc: 'Header centrado' },
-    { id: 'classic', label: 'Clásico', desc: 'Barra lateral con contacto y habilidades' },
-    { id: 'minimal', label: 'Minimalista', desc: 'Tipografía editorial y línea de tiempo' },
+  const layouts = [
+    { id: 'modern', label: 'Moderno', desc: 'Header centrado con franja de color' },
+    { id: 'classic', label: 'Clásico', desc: 'Sidebar lateral con datos de contacto' },
+    { id: 'minimal', label: 'Minimalista', desc: 'Tipografía limpia sin decoración' },
   ];
 
   const tabs = [
@@ -96,6 +112,7 @@ export default function Editor({ resumeData }: EditorProps) {
     { id: 'fonts' as const, icon: Type, label: 'Fuentes' },
     { id: 'layout' as const, icon: Layout, label: 'Layout' },
     { id: 'content' as const, icon: Edit3, label: 'Contenido' },
+    { id: 'photos' as const,  icon: Image,   label: 'Fotos'     },
   ];
 
   const update = (path: string, value: any) => {
@@ -109,162 +126,119 @@ export default function Editor({ resumeData }: EditorProps) {
     });
   };
 
+  const updateExp = (idx: number, field: string, value: any) => {
+    setData((prev: any) => {
+      const e2 = JSON.parse(JSON.stringify(prev.experience));
+      e2[idx][field] = value;
+      return { ...prev, experience: e2 };
+    });
+  };
+
+  const updateEdu = (idx: number, field: string, value: any) => {
+    setData((prev: any) => {
+      const e2 = JSON.parse(JSON.stringify(prev.education));
+      e2[idx][field] = value;
+      return { ...prev, education: e2 };
+    });
+  };
+
   const addSkill = () => {
     if (!newSkill.trim()) return;
-    setData((prev: any) => ({ ...prev, skills: [...(prev.skills || []), newSkill.trim()] }));
+    setData((prev: any) => ({
+      ...prev,
+      skills: { ...prev.skills, [newSkillCategory]: [...(prev.skills?.[newSkillCategory] || []), newSkill.trim()] }
+    }));
     setNewSkill('');
   };
 
-  const removeSkill = (idx: number) => {
-    setData((prev: any) => ({ ...prev, skills: prev.skills.filter((_: any, i: number) => i !== idx) }));
+  const removeSkill = (category: string, idx: number) => {
+    setData((prev: any) => ({
+      ...prev,
+      skills: { ...prev.skills, [category]: prev.skills[category].filter((_: any, i: number) => i !== idx) }
+    }));
   };
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-    // TODO: llamar al backend
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const dataToSave = {
+        ...data,
+        style: { ...data.style, primaryColor, font: selectedFont, template: selectedLayout }
+      };
+      const res = await fetch(`http://localhost:8080/api/curriculum/${data.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(dataToSave),
+      });
+      if (!res.ok) throw new Error('Error guardando');
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleExport = () => {
     const nombre = data?.personalInfo?.name || 'curriculum';
+    const allSkills = [...(data?.skills?.technical || []), ...(data?.skills?.tools || []), ...(data?.skills?.soft || [])];
 
-    const skillsHtmlMain = data?.skills?.map((s: string) =>
+    const skillsHtml = allSkills.map((s: string) =>
       `<span style="display:inline-block;padding:4px 12px;border-radius:999px;border:1px solid ${primaryColor};color:${primaryColor};background:${primaryColor}18;font-size:13px;margin:3px">${s}</span>`
-    ).join('') || '';
+    ).join('');
 
-    const skillsHtmlSidebar = data?.skills?.map((s: string) =>
-      `<span style="display:inline-block;padding:4px 10px;border-radius:999px;border:1px solid rgba(255,255,255,0.35);color:#fff;background:rgba(255,255,255,0.1);font-size:12px;margin:3px">${s}</span>`
-    ).join('') || '';
-
-    const expHtmlDefault = data?.experience?.map((exp: any) => `
-      <div style="margin-bottom:16px;padding-left:12px;border-left:2px solid ${primaryColor}80">
+    const expHtml = data?.experience?.map((exp: any) => `
+      <div style="margin-bottom:20px;padding-left:12px;border-left:2px solid ${primaryColor}80">
         <div style="font-weight:600;color:#1e293b">${exp.position || ''}</div>
-        <div style="color:#64748b;font-size:14px">${exp.company || ''}</div>
+        <div style="color:${primaryColor};font-size:14px">${exp.company || ''}${exp.location ? ` · ${exp.location}` : ''}</div>
         <div style="color:#94a3b8;font-size:12px">${exp.startDate || ''} — ${exp.endDate || 'Actualidad'}</div>
-        ${exp.description ? `<div style="color:#475569;font-size:14px;margin-top:4px">${exp.description}</div>` : ''}
-      </div>`).join('') || '';
-
-    const expHtmlMinimal = data?.experience?.map((exp: any) => `
-      <div style="display:grid;grid-template-columns:104px 1fr;gap:16px;padding:14px 0;border-bottom:1px solid #e2e8f0;align-items:start">
-        <div style="font-size:11px;color:#94a3b8;line-height:1.45;text-align:right">${exp.startDate || ''} — ${exp.endDate || 'Actualidad'}</div>
-        <div>
-          <div style="font-weight:600;color:#1e293b">${exp.position || ''}</div>
-          <div style="color:#64748b;font-size:14px">${exp.company || ''}</div>
-          ${exp.description ? `<div style="color:#475569;font-size:14px;margin-top:6px">${exp.description}</div>` : ''}
-        </div>
+        ${exp.description ? `<div style="color:#475569;font-size:14px;margin-top:6px;line-height:1.6">${exp.description}</div>` : ''}
+        ${exp.achievements?.length ? `<ul style="margin-top:6px;padding-left:16px">${exp.achievements.map((a: string) => `<li style="color:#475569;font-size:13px;margin-bottom:3px">${a}</li>`).join('')}</ul>` : ''}
       </div>`).join('') || '';
 
     const eduHtml = data?.education?.map((edu: any) => `
-      <div style="margin-bottom:12px;padding-left:12px;border-left:2px solid ${primaryColor}80">
-        <div style="font-weight:600;color:#1e293b">${edu.degree || ''}</div>
-        <div style="color:#64748b;font-size:14px">${edu.institution || ''}</div>
+      <div style="margin-bottom:14px;padding-left:12px;border-left:2px solid ${primaryColor}80">
+        <div style="font-weight:600;color:#1e293b">${edu.degree || ''}${edu.field ? ` en ${edu.field}` : ''}</div>
+        <div style="color:#64748b;font-size:14px">${edu.institution || ''}${edu.location ? ` · ${edu.location}` : ''}</div>
         <div style="color:#94a3b8;font-size:12px">${edu.startDate || ''} — ${edu.endDate || ''}</div>
+        ${edu.description ? `<div style="color:#475569;font-size:13px;margin-top:4px">${edu.description}</div>` : ''}
       </div>`).join('') || '';
 
-    const eduHtmlMinimal = data?.education?.map((edu: any) => `
-      <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #f1f5f9">
-        <div style="font-weight:600;color:#1e293b">${edu.degree || ''}</div>
-        <div style="color:#64748b;font-size:14px">${edu.institution || ''}</div>
-        <div style="color:#94a3b8;font-size:12px;margin-top:4px">${edu.startDate || ''} — ${edu.endDate || ''}</div>
-      </div>`).join('') || '';
+    const langHtml = data?.languages?.map((l: any) =>
+      `<span style="display:inline-block;margin-right:16px;font-size:14px"><strong>${l.language}</strong> — ${l.level}</span>`
+    ).join('') || '';
 
-    const proyHtml = data?.projects?.map((p: any) => `
-      <div style="margin-bottom:12px;padding-left:12px;border-left:2px solid ${primaryColor}80">
-        <div style="font-weight:600;color:#1e293b">${p.name || ''}</div>
-        <div style="color:#475569;font-size:14px">${p.description || ''}</div>
-        ${p.technologies?.length ? `<div style="color:#94a3b8;font-size:12px;margin-top:2px">${p.technologies.join(' · ')}</div>` : ''}
-      </div>`).join('') || '';
+    const certHtml = data?.certifications?.map((c: any) =>
+      `<div style="margin-bottom:8px;font-size:14px"><strong>${c.name}</strong>${c.issuer ? ` · ${c.issuer}` : ''}${c.date ? ` · ${c.date}` : ''}</div>`
+    ).join('') || '';
 
-    const proyHtmlMinimal = data?.projects?.map((p: any) => `
-      <div style="margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid #f1f5f9">
-        <div style="font-weight:600;color:#1e293b">${p.name || ''}</div>
-        <div style="color:#475569;font-size:14px;margin-top:4px">${p.description || ''}</div>
-        ${p.technologies?.length ? `<div style="color:#94a3b8;font-size:12px;margin-top:4px">${p.technologies.join(' · ')}</div>` : ''}
-      </div>`).join('') || '';
+    const contacto = [data?.personalInfo?.email, data?.personalInfo?.phone, data?.personalInfo?.location, data?.personalInfo?.linkedin].filter(Boolean).join('  |  ');
 
-    const contacto = [
-      data?.personalInfo?.email ? `${data.personalInfo.email}` : '',
-      data?.personalInfo?.phone ? `${data.personalInfo.phone}` : '',
-      data?.personalInfo?.location ? `${data.personalInfo.location}` : '',
-      data?.personalInfo?.linkedin ? `${data.personalInfo.linkedin}` : '',
-    ].filter(Boolean).join('  |  ');
-
-    const contactBlocks = [
-      data?.personalInfo?.email ? `<div style="font-size:13px;margin-bottom:8px;word-break:break-all;opacity:0.95">${data.personalInfo.email}</div>` : '',
-      data?.personalInfo?.phone ? `<div style="font-size:13px;margin-bottom:8px;opacity:0.95">${data.personalInfo.phone}</div>` : '',
-      data?.personalInfo?.location ? `<div style="font-size:13px;margin-bottom:8px;opacity:0.95">${data.personalInfo.location}</div>` : '',
-      data?.personalInfo?.linkedin ? `<div style="font-size:12px;margin-bottom:8px;word-break:break-all;opacity:0.9">${data.personalInfo.linkedin}</div>` : '',
-    ].filter(Boolean).join('');
-
-    const bioBlock = data?.personalInfo?.bio
-      ? `<div style="font-size:11px;letter-spacing:0.12em;font-weight:700;color:${primaryColor};margin:20px 0 10px;text-transform:uppercase">SOBRE MÍ</div><div style="font-size:14px;color:#475569;line-height:1.6;margin-bottom:20px">${data.personalInfo.bio}</div>`
-      : '';
-
-    const bioBlockMinimal = data?.personalInfo?.bio
-      ? `<div style="font-size:13px;font-weight:500;color:#64748b;margin-bottom:8px">Sobre mí</div><div style="font-size:14px;color:#475569;line-height:1.65;margin-bottom:28px">${data.personalInfo.bio}</div>`
-      : '';
-
-    const sec = (label: string) => `<div style="font-size:11px;letter-spacing:0.12em;font-weight:700;color:${primaryColor};margin:20px 0 10px;text-transform:uppercase">${label}</div>`;
-    const secMinimal = (label: string) => `<div style="font-size:13px;font-weight:500;color:#64748b;margin:28px 0 12px">${label}</div>`;
-
-    let bodyInner = '';
-    if (selectedLayout === 'classic') {
-      bodyInner = `
-        <div style="display:flex;gap:28px;align-items:flex-start">
-          <aside style="width:220px;flex-shrink:0;background:${primaryColor};color:#fff;padding:24px;border-radius:14px">
-            <div style="font-size:10px;font-weight:700;letter-spacing:0.14em;opacity:0.85;margin-bottom:12px">CONTACTO</div>
-            ${contactBlocks}
-            ${skillsHtmlSidebar ? `<div style="font-size:10px;font-weight:700;letter-spacing:0.14em;opacity:0.85;margin:22px 0 10px">HABILIDADES</div><div>${skillsHtmlSidebar}</div>` : ''}
-          </aside>
-          <main style="flex:1;min-width:0">
-            <div style="padding-bottom:16px;margin-bottom:20px;border-bottom:1px solid #e2e8f0">
-              <h1 style="font-size:28px;font-weight:700;color:#0f172a;margin-bottom:4px">${nombre}</h1>
-              <div style="font-size:16px;color:${primaryColor};margin-bottom:4px">${data?.personalInfo?.title || ''}</div>
-            </div>
-            ${bioBlock}
-            ${expHtmlDefault ? `${sec('EXPERIENCIA')}${expHtmlDefault}` : ''}
-            ${eduHtml ? `${sec('EDUCACIÓN')}${eduHtml}` : ''}
-            ${proyHtml ? `${sec('PROYECTOS')}${proyHtml}` : ''}
-          </main>
-        </div>`;
-    } else if (selectedLayout === 'minimal') {
-      bodyInner = `
-        <div style="padding-bottom:24px;margin-bottom:28px;border-bottom:1px solid #e2e8f0">
-          <div style="display:flex;gap:24px;align-items:flex-end;flex-wrap:wrap">
-            <div style="flex:1;min-width:200px">
-              <h1 style="font-size:34px;font-weight:300;letter-spacing:-0.02em;color:#0f172a;margin-bottom:6px">${nombre}</h1>
-              <div style="font-size:15px;color:#64748b;margin-bottom:10px">${data?.personalInfo?.title || ''}</div>
-              <div style="font-size:13px;color:#94a3b8;line-height:1.5">${contacto}</div>
-            </div>
-          </div>
-        </div>
-        ${bioBlockMinimal}
-        ${expHtmlMinimal ? `${secMinimal('Experiencia')}${expHtmlMinimal}` : ''}
-        ${eduHtmlMinimal ? `${secMinimal('Educación')}${eduHtmlMinimal}` : ''}
-        ${skillsHtmlMain ? `${secMinimal('Habilidades')}<div style="margin-bottom:8px">${skillsHtmlMain}</div>` : ''}
-        ${proyHtmlMinimal ? `${secMinimal('Proyectos')}${proyHtmlMinimal}` : ''}`;
-    } else {
-      bodyInner = `
-        <div class="header" style="text-align:center;padding-bottom:16px;border-bottom:2px solid ${primaryColor}30;margin-bottom:16px">
-          <h1 style="font-size:28px;font-weight:700;color:#0f172a;margin-bottom:4px">${nombre}</h1>
-          <div style="font-size:16px;color:${primaryColor};margin-bottom:8px">${data?.personalInfo?.title || ''}</div>
-          <div style="font-size:13px;color:#64748b">${contacto}</div>
-        </div>
-        ${bioBlock}
-        ${expHtmlDefault ? `${sec('EXPERIENCIA')}${expHtmlDefault}` : ''}
-        ${eduHtml ? `${sec('EDUCACIÓN')}${eduHtml}` : ''}
-        ${skillsHtmlMain ? `${sec('HABILIDADES')}<div style="margin-bottom:20px">${skillsHtmlMain}</div>` : ''}
-        ${proyHtml ? `${sec('PROYECTOS')}${proyHtml}` : ''}`;
-    }
-
-    const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
-    <title>${nombre}</title>
+    const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>${nombre}</title>
     <style>
       *{margin:0;padding:0;box-sizing:border-box}
-      body{font-family:${selectedFont},Arial,sans-serif;color:#1e293b;background:white;padding:40px;max-width:900px;margin:auto}
+      body{font-family:${selectedFont},Arial,sans-serif;color:#1e293b;background:white;padding:40px;max-width:800px;margin:auto}
       @media print{body{padding:20px}}
+      .sec{font-size:11px;letter-spacing:.12em;font-weight:700;color:${primaryColor};margin:20px 0 10px;text-transform:uppercase;border-bottom:1px solid ${primaryColor}30;padding-bottom:4px}
     </style></head><body>
-    ${bodyInner}
+    ${selectedLayout === 'modern' ? `
+      <div style="background:${primaryColor};padding:32px;margin:-40px -40px 32px;text-align:center">
+        <h1 style="font-size:28px;font-weight:700;color:white;margin-bottom:4px">${nombre}</h1>
+        <div style="font-size:15px;color:rgba(255,255,255,0.85);margin-bottom:8px">${data?.personalInfo?.title || ''}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.7)">${contacto}</div>
+      </div>` : `
+      <div style="padding-bottom:16px;border-bottom:2px solid ${primaryColor}30;margin-bottom:16px">
+        <h1 style="font-size:26px;font-weight:700;color:#0f172a;margin-bottom:4px">${nombre}</h1>
+        <div style="font-size:15px;color:${primaryColor};margin-bottom:8px">${data?.personalInfo?.title || ''}</div>
+        <div style="font-size:12px;color:#64748b">${contacto}</div>
+      </div>`}
+    ${data?.personalInfo?.bio ? `<div class="sec">SOBRE MÍ</div><p style="font-size:14px;color:#475569;line-height:1.6;margin-bottom:20px">${data.personalInfo.bio}</p>` : ''}
+    ${expHtml ? `<div class="sec">EXPERIENCIA PROFESIONAL</div>${expHtml}` : ''}
+    ${eduHtml ? `<div class="sec">FORMACIÓN ACADÉMICA</div>${eduHtml}` : ''}
+    ${skillsHtml ? `<div class="sec">HABILIDADES</div><div style="margin-bottom:20px">${skillsHtml}</div>` : ''}
+    ${langHtml ? `<div class="sec">IDIOMAS</div><div style="margin-bottom:16px">${langHtml}</div>` : ''}
+    ${certHtml ? `<div class="sec">CERTIFICACIONES</div>${certHtml}` : ''}
     <div style="margin-top:40px;padding-top:12px;border-top:1px solid #e2e8f0;text-align:center;font-size:11px;color:#cbd5e1">Creado con Visume</div>
     </body></html>`;
 
@@ -275,18 +249,281 @@ export default function Editor({ resumeData }: EditorProps) {
     setTimeout(() => w.print(), 500);
   };
 
-  const sectionHeading = (label: string) => (
-    <h2
-      className={
-        selectedLayout === 'minimal'
-          ? 'text-sm font-medium text-slate-500 mb-4'
-          : 'text-xs tracking-widest font-bold mb-3 uppercase'
-      }
-      style={selectedLayout === 'minimal' ? undefined : { color: primaryColor }}
-    >
-      {label}
-    </h2>
+  // ── Componente de sección ──────────────────────────────────────
+  const SectionTitle = ({ children }: { children: string }) => {
+    if (selectedLayout === 'minimal') {
+      return <h2 className="text-xs tracking-widest font-bold mb-3 uppercase text-slate-400 mt-6">{children}</h2>;
+    }
+    return (
+      <h2 className="text-xs tracking-widest font-bold mb-3 uppercase pb-1 border-b"
+        style={{ color: primaryColor, borderColor: primaryColor + '40' }}>{children}</h2>
+    );
+  };
+
+  // ── Contenido del CV ───────────────────────────────────────────
+  const CVContent = () => (
+    <>
+      {data?.personalInfo?.bio && (
+        <div className="mb-6">
+          <SectionTitle>Sobre mí</SectionTitle>
+          <p className="text-slate-600 text-sm leading-relaxed">
+            <EditableText value={data.personalInfo.bio} onSave={v => update('personalInfo.bio', v)} multiline />
+          </p>
+        </div>
+      )}
+
+      {data?.experience?.length > 0 && (
+        <div className="mb-6">
+          <SectionTitle>Experiencia Profesional</SectionTitle>
+          <div className="space-y-5">
+            {data.experience.map((exp: any, idx: number) => (
+              <div key={idx} className={selectedLayout === 'minimal' ? 'mb-4' : 'pl-3 border-l-2'} style={selectedLayout !== 'minimal' ? { borderColor: primaryColor + '60' } : {}}>
+                <p className="font-semibold text-slate-800">
+                  <EditableText value={exp.position || ''} onSave={v => updateExp(idx, 'position', v)} />
+                </p>
+                <p className="text-sm" style={{ color: selectedLayout === 'minimal' ? '#64748b' : primaryColor }}>
+                  <EditableText value={exp.company || ''} onSave={v => updateExp(idx, 'company', v)} />
+                  {exp.location && <span className="text-slate-400"> · {exp.location}</span>}
+                </p>
+                <p className="text-slate-400 text-xs mb-2">{exp.startDate} — {exp.endDate || 'Actualidad'}</p>
+                {exp.description && (
+                  <p className="text-slate-600 text-sm leading-relaxed mb-2">
+                    <EditableText value={exp.description} onSave={v => updateExp(idx, 'description', v)} multiline />
+                  </p>
+                )}
+                {exp.achievements?.length > 0 && (
+                  <ul className="space-y-1">
+                    {exp.achievements.map((a: string, i: number) => (
+                      <li key={i} className="flex items-start gap-2 text-slate-600 text-sm">
+                        <span style={{ color: primaryColor }} className="mt-1 flex-shrink-0">▸</span>
+                        <EditableText value={a} onSave={v => {
+                          const e2 = JSON.parse(JSON.stringify(data.experience));
+                          e2[idx].achievements[i] = v;
+                          setData((p: any) => ({ ...p, experience: e2 }));
+                        }} />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {data?.education?.length > 0 && (
+        <div className="mb-6">
+          <SectionTitle>Formación Académica</SectionTitle>
+          <div className="space-y-4">
+            {data.education.map((edu: any, idx: number) => (
+              <div key={idx} className={selectedLayout === 'minimal' ? 'mb-3' : 'pl-3 border-l-2'} style={selectedLayout !== 'minimal' ? { borderColor: primaryColor + '60' } : {}}>
+                <p className="font-semibold text-slate-800">
+                  <EditableText value={edu.degree || ''} onSave={v => updateEdu(idx, 'degree', v)} />
+                  {edu.field && <span className="font-normal text-slate-600"> en <EditableText value={edu.field} onSave={v => updateEdu(idx, 'field', v)} /></span>}
+                </p>
+                <p className="text-slate-500 text-sm">
+                  <EditableText value={edu.institution || ''} onSave={v => updateEdu(idx, 'institution', v)} />
+                  {edu.location && <span> · {edu.location}</span>}
+                </p>
+                <p className="text-slate-400 text-xs">{edu.startDate} — {edu.endDate}</p>
+                {edu.description && (
+                  <p className="text-slate-600 text-sm mt-1">
+                    <EditableText value={edu.description} onSave={v => updateEdu(idx, 'description', v)} multiline />
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {data?.skills && (
+        <div className="mb-6">
+          <SectionTitle>Habilidades</SectionTitle>
+          <div className="space-y-3">
+            {[{ key: 'technical', label: 'Técnicas' }, { key: 'tools', label: 'Herramientas' }, { key: 'soft', label: 'Competencias' }].map(({ key, label }) => (
+              data?.skills?.[key]?.length > 0 && (
+                <div key={key}>
+                  <p className="text-xs text-slate-400 mb-1">{label}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {data.skills[key].map((skill: string, idx: number) => (
+                      <span key={idx} className="group relative px-3 py-1 rounded-full text-xs border"
+                        style={{ borderColor: primaryColor + '60', color: primaryColor, backgroundColor: primaryColor + '10' }}>
+                        {skill}
+                        <button onClick={() => removeSkill(key, idx)}
+                          className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <X size={8} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )
+            ))}
+          </div>
+        </div>
+      )}
+
+      {data?.languages?.length > 0 && (
+        <div className="mb-6">
+          <SectionTitle>Idiomas</SectionTitle>
+          <div className="flex flex-wrap gap-4">
+            {data.languages.map((l: any, idx: number) => (
+              <div key={idx} className="flex items-center gap-2">
+                <Globe size={14} style={{ color: primaryColor }} />
+                <span className="text-slate-700 text-sm font-medium">
+                  <EditableText value={l.language} onSave={v => {
+                    const l2 = [...data.languages]; l2[idx] = { ...l2[idx], language: v };
+                    setData((p: any) => ({ ...p, languages: l2 }));
+                  }} />
+                </span>
+                <span className="text-slate-400 text-xs">— {l.level}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {data?.certifications?.length > 0 && (
+        <div className="mb-6">
+          <SectionTitle>Certificaciones</SectionTitle>
+          <div className="space-y-2">
+            {data.certifications.map((c: any, idx: number) => (
+              <div key={idx} className="flex items-start gap-2">
+                <Award size={14} style={{ color: primaryColor }} className="mt-0.5 flex-shrink-0" />
+                <div>
+                  <EditableText value={c.name || ''} onSave={v => {
+                    const c2 = [...data.certifications]; c2[idx] = { ...c2[idx], name: v };
+                    setData((p: any) => ({ ...p, certifications: c2 }));
+                  }} className="text-slate-800 text-sm font-medium" />
+                  {c.issuer && <span className="text-slate-500 text-sm"> · {c.issuer}</span>}
+                  {c.date && <span className="text-slate-400 text-xs"> · {c.date}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {data?.projects?.length > 0 && (
+        <div className="mb-6">
+          <SectionTitle>Proyectos</SectionTitle>
+          <div className="space-y-3">
+            {data.projects.map((proj: any, idx: number) => (
+              <div key={idx} className="pl-3 border-l-2" style={{ borderColor: primaryColor + '60' }}>
+                <p className="font-semibold text-slate-800">{proj.name}</p>
+                <p className="text-slate-600 text-sm">{proj.description}</p>
+                {proj.technologies?.length > 0 && <p className="text-slate-400 text-xs mt-1">{proj.technologies.join(' · ')}</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {data?.interests?.length > 0 && (
+        <div className="mb-6">
+          <SectionTitle>Intereses</SectionTitle>
+          <div className="flex flex-wrap gap-2">
+            {data.interests.map((interest: string, idx: number) => (
+              <span key={idx} className="px-3 py-1 rounded-full text-xs bg-slate-100 text-slate-600">{interest}</span>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
   );
+
+  // ── Layouts ────────────────────────────────────────────────────
+  const PreviewModern = () => (
+    <div style={{ fontFamily: selectedFont }}>
+      {/* Header con franja de color */}
+      <div className="px-8 py-8 text-center mb-6 -mx-8 -mt-8"
+        style={{ backgroundColor: primaryColor }}>
+        <h1 className="text-3xl font-bold text-white mb-1">
+          <EditableText value={data?.personalInfo?.name || ''} onSave={v => update('personalInfo.name', v)} className="text-white" />
+        </h1>
+        <p className="text-lg mb-3" style={{ color: 'rgba(255,255,255,0.85)' }}>
+          <EditableText value={data?.personalInfo?.title || ''} onSave={v => update('personalInfo.title', v)} style={{ color: 'rgba(255,255,255,0.85)' }} />
+        </p>
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
+          {data?.personalInfo?.email && <span>{data.personalInfo.email}</span>}
+          {data?.personalInfo?.phone && <span>{data.personalInfo.phone}</span>}
+          {data?.personalInfo?.location && <span>{data.personalInfo.location}</span>}
+          {data?.personalInfo?.linkedin && <span>{data.personalInfo.linkedin}</span>}
+        </div>
+      </div>
+      <div className="px-2"><CVContent /></div>
+    </div>
+  );
+
+  const PreviewClassic = () => (
+    <div className="flex gap-0" style={{ fontFamily: selectedFont }}>
+      {/* Sidebar */}
+      <div className="w-48 flex-shrink-0 p-5 min-h-full" style={{ backgroundColor: primaryColor + '15' }}>
+        <div className="w-16 h-16 rounded-full mx-auto mb-3 flex items-center justify-center text-2xl font-bold text-white"
+          style={{ backgroundColor: primaryColor }}>
+          {data?.personalInfo?.name?.[0] || '?'}
+        </div>
+        <h1 className="text-base font-bold text-slate-900 text-center mb-1">
+          <EditableText value={data?.personalInfo?.name || ''} onSave={v => update('personalInfo.name', v)} />
+        </h1>
+        <p className="text-xs text-center mb-4" style={{ color: primaryColor }}>
+          <EditableText value={data?.personalInfo?.title || ''} onSave={v => update('personalInfo.title', v)} style={{ color: primaryColor }} />
+        </p>
+        <div className="space-y-2 text-xs text-slate-600 border-t pt-3" style={{ borderColor: primaryColor + '40' }}>
+          {data?.personalInfo?.email && <p className="break-all">{data.personalInfo.email}</p>}
+          {data?.personalInfo?.phone && <p>{data.personalInfo.phone}</p>}
+          {data?.personalInfo?.location && <p>{data.personalInfo.location}</p>}
+          {data?.personalInfo?.linkedin && <p className="break-all">{data.personalInfo.linkedin}</p>}
+        </div>
+        {data?.languages?.length > 0 && (
+          <div className="mt-4 border-t pt-3" style={{ borderColor: primaryColor + '40' }}>
+            <p className="text-xs font-bold uppercase mb-2" style={{ color: primaryColor }}>Idiomas</p>
+            {data.languages.map((l: any, i: number) => (
+              <p key={i} className="text-xs text-slate-600">{l.language} — {l.level}</p>
+            ))}
+          </div>
+        )}
+        {data?.skills?.technical?.length > 0 && (
+          <div className="mt-4 border-t pt-3" style={{ borderColor: primaryColor + '40' }}>
+            <p className="text-xs font-bold uppercase mb-2" style={{ color: primaryColor }}>Skills</p>
+            {data.skills.technical.map((s: string, i: number) => (
+              <p key={i} className="text-xs text-slate-600 mb-1">{s}</p>
+            ))}
+          </div>
+        )}
+      </div>
+      {/* Contenido principal */}
+      <div className="flex-1 p-5 overflow-auto"><CVContent /></div>
+    </div>
+  );
+
+  const PreviewMinimal = () => (
+    <div className="px-4" style={{ fontFamily: selectedFont }}>
+      <div className="mb-8 pb-4" style={{ borderBottom: `1px solid ${primaryColor}` }}>
+        <h1 className="text-4xl font-bold text-slate-900 mb-1">
+          <EditableText value={data?.personalInfo?.name || ''} onSave={v => update('personalInfo.name', v)} />
+        </h1>
+        <p className="text-lg text-slate-500 mb-3">
+          <EditableText value={data?.personalInfo?.title || ''} onSave={v => update('personalInfo.title', v)} />
+        </p>
+        <div className="flex flex-wrap gap-x-6 gap-y-1 text-slate-400 text-sm">
+          {data?.personalInfo?.email && <span>{data.personalInfo.email}</span>}
+          {data?.personalInfo?.phone && <span>{data.personalInfo.phone}</span>}
+          {data?.personalInfo?.location && <span>{data.personalInfo.location}</span>}
+          {data?.personalInfo?.linkedin && <span>{data.personalInfo.linkedin}</span>}
+        </div>
+      </div>
+      <CVContent />
+    </div>
+  );
+
+  if (loading) return (
+  <div className="min-h-screen flex items-center justify-center">
+    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+      className="w-12 h-12 rounded-full border-4 border-cyan-500/20 border-t-cyan-500" />
+  </div>
+);
 
   return (
     <section className="relative min-h-screen py-24 px-4">
@@ -295,18 +532,16 @@ export default function Editor({ resumeData }: EditorProps) {
           <h2 className="mb-4 text-4xl md:text-5xl bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent">
             Editor de Diseño
           </h2>
-          <p className="text-lg text-slate-400">Personaliza tu currículum — haz click en cualquier texto para editarlo</p>
+          <p className="text-lg text-slate-400">Haz click en cualquier texto para editarlo</p>
         </motion.div>
 
         <div className="grid lg:grid-cols-[350px_1fr] gap-8">
           {/* Panel izquierdo */}
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-            <div className="p-2 rounded-2xl bg-slate-900/70 backdrop-blur-md border border-cyan-500/30 grid grid-cols-4 gap-1">
+            <div className="p-2 rounded-2xl bg-slate-900/70 backdrop-blur-md border border-cyan-500/30 grid grid-cols-5 gap-1">
               {tabs.map((tab) => (
                 <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                  className={`flex flex-col items-center gap-1 px-2 py-3 rounded-xl transition-all text-xs ${
-                    activeTab === tab.id ? 'bg-gradient-to-br from-cyan-500 to-violet-600 shadow-lg text-white' : 'hover:bg-slate-800 text-slate-400'
-                  }`}>
+                  className={`flex flex-col items-center gap-1 px-2 py-3 rounded-xl transition-all text-xs ${activeTab === tab.id ? 'bg-gradient-to-br from-cyan-500 to-violet-600 shadow-lg text-white' : 'hover:bg-slate-800 text-slate-400'}`}>
                   <tab.icon size={18} />{tab.label}
                 </button>
               ))}
@@ -321,7 +556,7 @@ export default function Editor({ resumeData }: EditorProps) {
                     {colorPresets.map((color) => (
                       <motion.div key={color.value} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                         onClick={() => setPrimaryColor(color.value)}
-                        className={`p-3 rounded-xl cursor-pointer text-center transition-all ${primaryColor === color.value ? 'ring-2 ring-white/50' : ''}`}>
+                        className={`p-3 rounded-xl cursor-pointer text-center ${primaryColor === color.value ? 'ring-2 ring-white/50' : ''}`}>
                         <div className={`w-full h-10 rounded-lg bg-gradient-to-br ${color.gradient} mb-2`} />
                         <p className="text-xs text-slate-300">{color.name}</p>
                       </motion.div>
@@ -340,9 +575,8 @@ export default function Editor({ resumeData }: EditorProps) {
                   <div className="space-y-3">
                     {fontOptions.map((font) => (
                       <motion.button key={font.name} whileHover={{ x: 4 }} onClick={() => setSelectedFont(font.name)}
-                        className={`w-full p-4 rounded-xl text-left transition-all ${
-                          selectedFont === font.name ? 'bg-slate-800 border-2 border-cyan-500/50' : 'bg-slate-950/50 border border-slate-700 hover:border-slate-600'
-                        }`} style={{ fontFamily: font.name }}>
+                        className={`w-full p-4 rounded-xl text-left transition-all ${selectedFont === font.name ? 'bg-slate-800 border-2 border-cyan-500/50' : 'bg-slate-950/50 border border-slate-700'}`}
+                        style={{ fontFamily: font.name }}>
                         <p className="text-white text-lg mb-1">{font.name}</p>
                         <p className="text-slate-500 text-sm">{font.label}</p>
                       </motion.button>
@@ -358,37 +592,33 @@ export default function Editor({ resumeData }: EditorProps) {
                   <div className="space-y-3">
                     {layouts.map((layout) => (
                       <motion.button key={layout.id} whileHover={{ scale: 1.02 }} onClick={() => setSelectedLayout(layout.id)}
-                        className={`w-full p-4 rounded-xl text-left transition-all ${
-                          selectedLayout === layout.id ? 'bg-slate-800 border-2 border-cyan-500/50' : 'bg-slate-950/50 border border-slate-700 hover:border-slate-600'
-                        }`}>
-                        <div className="h-16 mb-3 rounded-lg bg-slate-700 flex items-center justify-center overflow-hidden px-3">
+                        className={`w-full p-4 rounded-xl text-left transition-all ${selectedLayout === layout.id ? 'bg-slate-800 border-2 border-cyan-500/50' : 'bg-slate-950/50 border border-slate-700'}`}>
+                        <div className="h-14 mb-3 rounded-lg overflow-hidden bg-slate-700">
                           {layout.id === 'modern' && (
-                            <div className="w-full space-y-1 text-center">
-                              <div className="h-2 bg-slate-500 rounded mx-auto w-1/2" />
-                              <div className="h-1 bg-slate-600 rounded mx-auto w-1/3" />
-                              <div className="h-px bg-slate-600 rounded w-full mt-1" />
-                              <div className="h-1 bg-slate-600 rounded w-full" />
+                            <div className="h-full flex flex-col">
+                              <div className="h-6 flex-shrink-0" style={{ backgroundColor: primaryColor + '80' }} />
+                              <div className="flex-1 p-1 space-y-1">
+                                <div className="h-1 bg-slate-500 rounded w-2/3 mx-auto" />
+                                <div className="h-1 bg-slate-600 rounded w-full" />
+                              </div>
                             </div>
                           )}
                           {layout.id === 'classic' && (
-                            <div className="w-full flex gap-2 h-full items-stretch py-1">
-                              <div className="w-1/4 rounded bg-cyan-500/80 shrink-0" />
-                              <div className="flex-1 space-y-1">
-                                <div className="h-2 bg-slate-500 rounded w-3/4" />
-                                <div className="h-1 bg-slate-600 rounded w-1/2" />
-                                <div className="h-px bg-slate-600 rounded w-full mt-1" />
+                            <div className="h-full flex">
+                              <div className="w-10 flex-shrink-0" style={{ backgroundColor: primaryColor + '30' }} />
+                              <div className="flex-1 p-1 space-y-1">
+                                <div className="h-1.5 bg-slate-500 rounded w-1/2" />
                                 <div className="h-1 bg-slate-600 rounded w-full" />
+                                <div className="h-1 bg-slate-600 rounded w-3/4" />
                               </div>
                             </div>
                           )}
                           {layout.id === 'minimal' && (
-                            <div className="w-full flex gap-2 items-end py-1">
-                              <div className="w-5 h-5 rounded bg-slate-500 shrink-0" />
-                              <div className="flex-1 space-y-1">
-                                <div className="h-2 bg-slate-500 rounded w-2/5" />
-                                <div className="h-1 bg-slate-600 rounded w-full" />
-                                <div className="h-1 bg-slate-600 rounded w-4/5" />
-                              </div>
+                            <div className="h-full p-2 space-y-1">
+                              <div className="h-2 bg-slate-400 rounded w-1/3" />
+                              <div className="h-px rounded w-full" style={{ backgroundColor: primaryColor + '80' }} />
+                              <div className="h-1 bg-slate-600 rounded w-full" />
+                              <div className="h-1 bg-slate-600 rounded w-2/3" />
                             </div>
                           )}
                         </div>
@@ -404,9 +634,6 @@ export default function Editor({ resumeData }: EditorProps) {
                 <motion.div key="content" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                   className="p-6 rounded-2xl bg-slate-900/70 backdrop-blur-md border border-cyan-500/30 space-y-5">
                   <h3 className="text-lg text-cyan-400">Editar contenido</h3>
-                  <p className="text-slate-500 text-xs">También puedes hacer click directamente sobre el texto en la vista previa.</p>
-
-                  {/* Campos básicos */}
                   {[
                     { label: 'Nombre', path: 'personalInfo.name' },
                     { label: 'Título profesional', path: 'personalInfo.title' },
@@ -423,49 +650,61 @@ export default function Editor({ resumeData }: EditorProps) {
                         className="w-full px-3 py-2 bg-slate-950/50 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500/50" />
                     </div>
                   ))}
-
-                  {/* Bio */}
                   <div>
                     <label className="block text-xs text-slate-500 mb-1">Sobre mí</label>
-                    <textarea value={data?.personalInfo?.bio || ''}
-                      onChange={e => update('personalInfo.bio', e.target.value)}
-                      rows={4}
-                      className="w-full px-3 py-2 bg-slate-950/50 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500/50 resize-none" />
+                    <textarea value={data?.personalInfo?.bio || ''} onChange={e => update('personalInfo.bio', e.target.value)}
+                      rows={4} className="w-full px-3 py-2 bg-slate-950/50 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500/50 resize-none" />
                   </div>
-
-                  {/* Skills */}
                   <div>
                     <label className="block text-xs text-slate-500 mb-2">Habilidades</label>
+                    <div className="flex gap-2 mb-3">
+                      {(['technical', 'soft', 'tools'] as const).map(cat => (
+                        <button key={cat} onClick={() => setNewSkillCategory(cat)}
+                          className={`px-2 py-1 rounded text-xs transition-all ${newSkillCategory === cat ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-500/50' : 'bg-slate-800 text-slate-400'}`}>
+                          {cat === 'technical' ? 'Técnicas' : cat === 'soft' ? 'Blandas' : 'Herramientas'}
+                        </button>
+                      ))}
+                    </div>
                     <div className="flex flex-wrap gap-2 mb-3">
-                      {data?.skills?.map((skill: string, idx: number) => (
-                        <span key={idx} className="flex items-center gap-1 px-3 py-1 rounded-full text-xs border border-slate-600 text-slate-300">
+                      {(data?.skills?.[newSkillCategory] || []).map((skill: string, idx: number) => (
+                        <span key={idx} className="flex items-center gap-1 px-2 py-1 rounded-full text-xs border border-slate-600 text-slate-300">
                           {skill}
-                          <button onClick={() => removeSkill(idx)} className="text-red-400 hover:text-red-300 ml-1">
-                            <X size={11} />
-                          </button>
+                          <button onClick={() => removeSkill(newSkillCategory, idx)} className="text-red-400"><X size={10} /></button>
                         </span>
                       ))}
                     </div>
                     <div className="flex gap-2">
                       <input value={newSkill} onChange={e => setNewSkill(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && addSkill()}
-                        placeholder="Nueva habilidad..."
+                        onKeyDown={e => e.key === 'Enter' && addSkill()} placeholder="Nueva habilidad..."
                         className="flex-1 px-3 py-2 bg-slate-950/50 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500/50" />
-                      <button onClick={addSkill}
-                        className="px-3 py-2 rounded-lg bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 hover:bg-cyan-500/30 transition-all">
+                      <button onClick={addSkill} className="px-3 py-2 rounded-lg bg-cyan-500/20 border border-cyan-500/40 text-cyan-400">
                         <Plus size={16} />
                       </button>
                     </div>
                   </div>
                 </motion.div>
               )}
+              {activeTab === 'photos' && (
+  <motion.div key="photos" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+    className="p-6 rounded-2xl bg-slate-900/70 backdrop-blur-md border border-cyan-500/30">
+    <h3 className="mb-4 text-lg text-cyan-400">Fotos del CV</h3>
+    {data?.id ? (
+      <CurriculumFotos
+        idCurriculum={data.id}
+        esPremium={plan === 'premium'}
+        maxFotos={maxFotosCv}
+      />
+    ) : (
+      <p className="text-slate-400 text-sm">Guarda el CV primero para poder añadir fotos.</p>
+    )}
+  </motion.div>
+)}
             </AnimatePresence>
 
-            {/* Botones */}
             <div className="space-y-3">
-              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSave}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 transition-all shadow-lg flex items-center justify-center gap-2 text-white">
-                {saved ? <><Check size={20} /><span>¡Guardado!</span></> : <><Save size={20} /><span>Guardar Cambios</span></>}
+              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSave} disabled={saving}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 transition-all shadow-lg flex items-center justify-center gap-2 text-white disabled:opacity-70">
+                {saved ? <><Check size={20} /><span>¡Guardado!</span></> : saving ? <span>Guardando...</span> : <><Save size={20} /><span>Guardar Cambios</span></>}
               </motion.button>
               <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleExport}
                 className="w-full py-3 rounded-xl bg-slate-900/70 border border-cyan-500/30 hover:border-cyan-500/50 transition-all flex items-center justify-center gap-2 text-white">
@@ -477,381 +716,15 @@ export default function Editor({ resumeData }: EditorProps) {
           {/* Vista previa */}
           <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }}>
             <div className="sticky top-24">
-              <div
-                className={`p-8 rounded-2xl bg-white min-h-[700px] shadow-2xl overflow-auto ${selectedLayout === 'minimal' ? 'border border-slate-200' : ''}`}
-                style={{ fontFamily: selectedFont }}
-              >
-                {selectedLayout === 'classic' ? (
-                  <div className="flex flex-col md:flex-row gap-8 md:items-start">
-                    <aside
-                      className="md:w-[220px] shrink-0 rounded-2xl p-6 text-white space-y-5 shadow-lg"
-                      style={{ backgroundColor: primaryColor }}
-                    >
-                      <div>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-white/70 mb-2">Contacto</p>
-                        <div className="space-y-2 text-sm text-white/95 break-words">
-                          {data?.personalInfo?.email && <p>{data.personalInfo.email}</p>}
-                          {data?.personalInfo?.phone && <p>{data.personalInfo.phone}</p>}
-                          {data?.personalInfo?.location && <p>{data.personalInfo.location}</p>}
-                          {data?.personalInfo?.linkedin && <p className="text-xs break-all opacity-90">{data.personalInfo.linkedin}</p>}
-                        </div>
-                      </div>
-                      {data?.skills?.length > 0 && (
-                        <div>
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-white/70 mb-2">Habilidades</p>
-                          <div className="flex flex-wrap gap-2">
-                            {data.skills.map((skill: string, idx: number) => (
-                              <span
-                                key={idx}
-                                className="group relative px-2.5 py-1 rounded-full text-xs border border-white/35 text-white bg-white/10"
-                              >
-                                {skill}
-                                <button
-                                  type="button"
-                                  onClick={() => removeSkill(idx)}
-                                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                                >
-                                  <X size={8} />
-                                </button>
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </aside>
-                    <div className="flex-1 min-w-0 space-y-6">
-                      <div className="text-left pb-5 border-b border-slate-200">
-                        <h1 className="text-3xl font-bold text-slate-900 mb-1">
-                          <EditableText
-                            value={data?.personalInfo?.name || ''}
-                            onSave={v => update('personalInfo.name', v)}
-                            className="text-3xl font-bold text-slate-900"
-                          />
-                        </h1>
-                        <p className="text-lg">
-                          <EditableText
-                            value={data?.personalInfo?.title || ''}
-                            onSave={v => update('personalInfo.title', v)}
-                            style={{ color: primaryColor }}
-                          />
-                        </p>
-                      </div>
-                      {data?.personalInfo?.bio && (
-                        <div className="mb-2">
-                          {sectionHeading('Sobre mí')}
-                          <p className="text-slate-600 text-sm leading-relaxed">
-                            <EditableText
-                              value={data.personalInfo.bio}
-                              onSave={v => update('personalInfo.bio', v)}
-                              className="text-slate-600 text-sm leading-relaxed"
-                              multiline
-                            />
-                          </p>
-                        </div>
-                      )}
-                      {data?.experience?.length > 0 && (
-                        <div>
-                          {sectionHeading('Experiencia')}
-                          <div className="space-y-4">
-                            {data.experience.map((exp: any, idx: number) => (
-                              <div key={idx} className="pl-3 border-l-2" style={{ borderColor: primaryColor + '60' }}>
-                                <p className="font-semibold text-slate-800">
-                                  <EditableText
-                                    value={exp.position || ''}
-                                    onSave={v => {
-                                      const exp2 = [...data.experience];
-                                      exp2[idx] = { ...exp2[idx], position: v };
-                                      setData((p: any) => ({ ...p, experience: exp2 }));
-                                    }}
-                                  />
-                                </p>
-                                <p className="text-slate-500 text-sm">
-                                  <EditableText
-                                    value={exp.company || ''}
-                                    onSave={v => {
-                                      const exp2 = [...data.experience];
-                                      exp2[idx] = { ...exp2[idx], company: v };
-                                      setData((p: any) => ({ ...p, experience: exp2 }));
-                                    }}
-                                  />
-                                </p>
-                                <p className="text-slate-400 text-xs">
-                                  {exp.startDate} — {exp.endDate || 'Actualidad'}
-                                </p>
-                                {exp.description && (
-                                  <p className="text-slate-600 text-sm mt-1">
-                                    <EditableText
-                                      value={exp.description}
-                                      onSave={v => {
-                                        const exp2 = [...data.experience];
-                                        exp2[idx] = { ...exp2[idx], description: v };
-                                        setData((p: any) => ({ ...p, experience: exp2 }));
-                                      }}
-                                      multiline
-                                    />
-                                  </p>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      {data?.education?.length > 0 && (
-                        <div>
-                          {sectionHeading('Educación')}
-                          <div className="space-y-3">
-                            {data.education.map((edu: any, idx: number) => (
-                              <div key={idx} className="pl-3 border-l-2" style={{ borderColor: primaryColor + '60' }}>
-                                <p className="font-semibold text-slate-800">{edu.degree}</p>
-                                <p className="text-slate-500 text-sm">{edu.institution}</p>
-                                <p className="text-slate-400 text-xs">
-                                  {edu.startDate} — {edu.endDate}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      {data?.projects?.length > 0 && (
-                        <div>
-                          {sectionHeading('Proyectos')}
-                          <div className="space-y-4">
-                            {data.projects.map((proj: any, idx: number) => (
-                              <div key={idx} className="pl-3 border-l-2" style={{ borderColor: primaryColor + '60' }}>
-                                <p className="font-semibold text-slate-800">{proj.name}</p>
-                                <p className="text-slate-600 text-sm">{proj.description}</p>
-                                {proj.technologies?.length > 0 && (
-                                  <p className="text-slate-400 text-xs mt-1">{proj.technologies.join(' · ')}</p>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    {selectedLayout === 'minimal' ? (
-                      <div className="pb-8 mb-8 border-b border-slate-200">
-                        <div className="flex flex-col sm:flex-row sm:items-end gap-6">
-                          <div className="flex-1 min-w-0">
-                            <h1 className="text-4xl font-light tracking-tight text-slate-900 mb-2">
-                              <EditableText
-                                value={data?.personalInfo?.name || ''}
-                                onSave={v => update('personalInfo.name', v)}
-                                className="text-4xl font-light tracking-tight text-slate-900"
-                              />
-                            </h1>
-                            <p className="text-base text-slate-500 mb-3">
-                              <EditableText
-                                value={data?.personalInfo?.title || ''}
-                                onSave={v => update('personalInfo.title', v)}
-                                className="text-base text-slate-500"
-                              />
-                            </p>
-                            <div className="flex flex-wrap gap-x-4 gap-y-1 text-slate-500 text-sm">
-                              {data?.personalInfo?.email && <span>{data.personalInfo.email}</span>}
-                              {data?.personalInfo?.phone && <span>{data.personalInfo.phone}</span>}
-                              {data?.personalInfo?.location && <span>{data.personalInfo.location}</span>}
-                              {data?.personalInfo?.linkedin && <span>{data.personalInfo.linkedin}</span>}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="pb-5 mb-6 border-b-2 text-center" style={{ borderColor: primaryColor + '40' }}>
-                        <h1 className="text-3xl font-bold text-slate-900 mb-1">
-                          <EditableText
-                            value={data?.personalInfo?.name || ''}
-                            onSave={v => update('personalInfo.name', v)}
-                            className="text-3xl font-bold text-slate-900"
-                          />
-                        </h1>
-                        <p className="text-lg mb-3">
-                          <EditableText
-                            value={data?.personalInfo?.title || ''}
-                            onSave={v => update('personalInfo.title', v)}
-                            style={{ color: primaryColor }}
-                          />
-                        </p>
-                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-slate-500 text-sm justify-center">
-                          {data?.personalInfo?.email && <span>{data.personalInfo.email}</span>}
-                          {data?.personalInfo?.phone && <span>{data.personalInfo.phone}</span>}
-                          {data?.personalInfo?.location && <span>{data.personalInfo.location}</span>}
-                          {data?.personalInfo?.linkedin && <span>{data.personalInfo.linkedin}</span>}
-                        </div>
-                      </div>
-                    )}
-
-                    {data?.personalInfo?.bio && (
-                      <div className="mb-6">
-                        {sectionHeading('Sobre mí')}
-                        <p className="text-slate-600 text-sm leading-relaxed">
-                          <EditableText
-                            value={data.personalInfo.bio}
-                            onSave={v => update('personalInfo.bio', v)}
-                            className="text-slate-600 text-sm leading-relaxed"
-                            multiline
-                          />
-                        </p>
-                      </div>
-                    )}
-
-                    {data?.experience?.length > 0 && (
-                      <div className="mb-6">
-                        {sectionHeading('Experiencia')}
-                        <div className={selectedLayout === 'minimal' ? 'space-y-0' : 'space-y-4'}>
-                          {data.experience.map((exp: any, idx: number) => (
-                            <div
-                              key={idx}
-                              className={
-                                selectedLayout === 'minimal'
-                                  ? 'grid grid-cols-1 sm:grid-cols-[6.75rem_1fr] gap-2 sm:gap-5 py-4 border-b border-slate-100 last:border-b-0'
-                                  : 'pl-3 border-l-2 space-y-1'
-                              }
-                              style={selectedLayout === 'minimal' ? undefined : { borderColor: primaryColor + '60' }}
-                            >
-                              {selectedLayout === 'minimal' && (
-                                <div className="text-[11px] sm:text-xs text-slate-400 sm:text-right leading-snug pt-0.5 whitespace-nowrap sm:whitespace-normal">
-                                  {exp.startDate}
-                                  <span className="hidden sm:inline"> — </span>
-                                  <span className="sm:hidden"> </span>
-                                  {exp.endDate || 'Actualidad'}
-                                </div>
-                              )}
-                              <div>
-                                <p className="font-semibold text-slate-800">
-                                  <EditableText
-                                    value={exp.position || ''}
-                                    onSave={v => {
-                                      const exp2 = [...data.experience];
-                                      exp2[idx] = { ...exp2[idx], position: v };
-                                      setData((p: any) => ({ ...p, experience: exp2 }));
-                                    }}
-                                  />
-                                </p>
-                                <p className="text-slate-500 text-sm">
-                                  <EditableText
-                                    value={exp.company || ''}
-                                    onSave={v => {
-                                      const exp2 = [...data.experience];
-                                      exp2[idx] = { ...exp2[idx], company: v };
-                                      setData((p: any) => ({ ...p, experience: exp2 }));
-                                    }}
-                                  />
-                                </p>
-                                {selectedLayout !== 'minimal' && (
-                                  <p className="text-slate-400 text-xs">
-                                    {exp.startDate} — {exp.endDate || 'Actualidad'}
-                                  </p>
-                                )}
-                                {exp.description && (
-                                  <p className="text-slate-600 text-sm mt-1">
-                                    <EditableText
-                                      value={exp.description}
-                                      onSave={v => {
-                                        const exp2 = [...data.experience];
-                                        exp2[idx] = { ...exp2[idx], description: v };
-                                        setData((p: any) => ({ ...p, experience: exp2 }));
-                                      }}
-                                      multiline
-                                    />
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {data?.education?.length > 0 && (
-                      <div className="mb-6">
-                        {sectionHeading('Educación')}
-                        <div className="space-y-3">
-                          {data.education.map((edu: any, idx: number) => (
-                            <div
-                              key={idx}
-                              className={
-                                selectedLayout === 'minimal'
-                                  ? 'pb-3 border-b border-slate-100 last:border-0'
-                                  : 'pl-3 border-l-2'
-                              }
-                              style={selectedLayout === 'minimal' ? undefined : { borderColor: primaryColor + '60' }}
-                            >
-                              <p className="font-semibold text-slate-800">{edu.degree}</p>
-                              <p className="text-slate-500 text-sm">{edu.institution}</p>
-                              <p className="text-slate-400 text-xs">
-                                {edu.startDate} — {edu.endDate}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {data?.skills?.length > 0 && (
-                      <div className="mb-6">
-                        {sectionHeading('Habilidades')}
-                        <div className="flex flex-wrap gap-2">
-                          {data.skills.map((skill: string, idx: number) => (
-                            <span
-                              key={idx}
-                              className="group relative px-3 py-1 rounded-full text-sm border"
-                              style={{
-                                borderColor: primaryColor + '60',
-                                color: primaryColor,
-                                backgroundColor: primaryColor + '10',
-                              }}
-                            >
-                              {skill}
-                              <button
-                                type="button"
-                                onClick={() => removeSkill(idx)}
-                                className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                              >
-                                <X size={8} />
-                              </button>
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {data?.projects?.length > 0 && (
-                      <div>
-                        {sectionHeading('Proyectos')}
-                        <div className="space-y-4">
-                          {data.projects.map((proj: any, idx: number) => (
-                            <div
-                              key={idx}
-                              className={
-                                selectedLayout === 'minimal'
-                                  ? 'pb-4 border-b border-slate-100 last:border-0'
-                                  : 'pl-3 border-l-2'
-                              }
-                              style={selectedLayout === 'minimal' ? undefined : { borderColor: primaryColor + '60' }}
-                            >
-                              <p className="font-semibold text-slate-800">{proj.name}</p>
-                              <p className="text-slate-600 text-sm">{proj.description}</p>
-                              {proj.technologies?.length > 0 && (
-                                <p className="text-slate-400 text-xs mt-1">{proj.technologies.join(' · ')}</p>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {selectedLayout === 'minimal' && (
-                      <div className="mt-8 pt-4 border-t border-slate-200 text-center text-xs text-slate-300">
-                        Creado con Visume
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
+              <AnimatePresence mode="wait">
+                <motion.div key={selectedLayout} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                  className="rounded-2xl bg-white shadow-2xl overflow-auto max-h-[85vh]"
+                  style={{ padding: selectedLayout === 'classic' ? '0' : '2rem' }}>
+                  {selectedLayout === 'modern' && <PreviewModern />}
+                  {selectedLayout === 'classic' && <PreviewClassic />}
+                  {selectedLayout === 'minimal' && <PreviewMinimal />}
+                </motion.div>
+              </AnimatePresence>
             </div>
           </motion.div>
         </div>

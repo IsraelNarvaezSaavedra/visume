@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Sparkles, Zap, Crown, Loader2, ArrowRight, Check } from "lucide-react";
+import { Sparkles, Zap, Crown, Loader2, ArrowRight, Check, Plus, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { apiUrl } from "../config/api";
 
@@ -20,6 +20,8 @@ export default function Generator({ onGenerate }: GeneratorProps) {
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [preview, setPreview] = useState<any>(null);
+  const [fotoProyectos, setFotoProyectos] = useState<string[]>([]);
+  const [subiendoFoto, setSubiendoFoto] = useState(false);
 
   const handleConfirmPlan = () => {
     if (!selectedPlan) return;
@@ -36,6 +38,11 @@ export default function Generator({ onGenerate }: GeneratorProps) {
     setIsGenerating(true);
     setPreview(null);
 
+    const promptConFotos =
+      fotoProyectos.length > 0
+        ? `${prompt}\n\nFotos de proyectos adjuntas: ${fotoProyectos.length} imágenes subidas por el usuario para mostrar en su portfolio.`
+        : prompt;
+
     try {
       const res = await fetch(apiUrl("/api/curriculum/generate"), {
         method: "POST",
@@ -43,7 +50,7 @@ export default function Generator({ onGenerate }: GeneratorProps) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ prompt, plan: selectedPlan }),
+        body: JSON.stringify({ prompt: promptConFotos, plan: selectedPlan }),
       });
 
       if (!res.ok) throw new Error("Error generando curriculum");
@@ -53,6 +60,29 @@ export default function Generator({ onGenerate }: GeneratorProps) {
       console.error(err);
     } finally {
       setIsGenerating(false);
+    }
+  };
+  const handleSubirFotoProyecto = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSubiendoFoto(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("http://localhost:8080/api/files/proyecto", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Error subiendo foto");
+      const data = await res.json();
+      setFotoProyectos((prev) => [...prev, data.url]);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSubiendoFoto(false);
     }
   };
 
@@ -224,10 +254,59 @@ export default function Generator({ onGenerate }: GeneratorProps) {
                         : "bg-cyan-500/10 border-cyan-500/30 text-cyan-400"
                     }`}
                   >
-                    {plan === "premium" ? (
-                      <Crown size={14} />
-                    ) : (
-                      <Sparkles size={14} />
+                    {/* Fotos de proyectos — solo premium */}
+                    {plan === "premium" && (
+                      <div className="relative group">
+                        <div className="absolute inset-0 bg-gradient-to-r from-violet-500/20 to-purple-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="relative p-6 rounded-2xl bg-slate-900/70 backdrop-blur-md border border-violet-500/30">
+                          <label className="block mb-3 text-violet-400 flex items-center gap-2">
+                            <Crown size={18} />
+                            Fotos de proyectos{" "}
+                            <span className="text-xs text-violet-500">
+                              (opcional)
+                            </span>
+                          </label>
+                          <div className="grid grid-cols-3 gap-3 mb-3">
+                            {fotoProyectos.map((url, idx) => (
+                              <div
+                                key={idx}
+                                className="relative aspect-square rounded-xl overflow-hidden border border-violet-500/30"
+                              >
+                                <img
+                                  src={`http://localhost:8080${url}`}
+                                  alt=""
+                                  className="w-full h-full object-cover"
+                                />
+                                <button
+                                  onClick={() =>
+                                    setFotoProyectos((prev) =>
+                                      prev.filter((_, i) => i !== idx),
+                                    )
+                                  }
+                                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center"
+                                >
+                                  <X size={12} />
+                                </button>
+                              </div>
+                            ))}
+                            {fotoProyectos.length < 6 && (
+                              <label className="aspect-square rounded-xl border-2 border-dashed border-violet-500/30 hover:border-violet-500/50 flex items-center justify-center cursor-pointer transition-all">
+                                <Plus size={24} className="text-violet-400" />
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={handleSubirFotoProyecto}
+                                  disabled={subiendoFoto}
+                                />
+                              </label>
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-500">
+                            Máximo 6 fotos · Se mostrarán en tu portfolio
+                          </p>
+                        </div>
+                      </div>
                     )}
                     {plan === "premium"
                       ? "Plan Premium activo"

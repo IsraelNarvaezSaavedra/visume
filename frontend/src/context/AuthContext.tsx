@@ -5,12 +5,15 @@ interface Usuario {
   email: string;
   nombre: string;
   estaPagando: boolean;
+  rol: string;
+  maxFotosCv?: number;
 }
 
 interface AuthContextType {
   usuario: Usuario | null;
   token: string | null;
   plan: 'free' | 'premium' | null;
+  maxFotosCv: number;
   login: (token: string, usuario: Usuario) => void;
   logout: () => void;
   setPlan: (plan: 'free' | 'premium') => void;
@@ -20,6 +23,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  
   const [token, setToken] = useState<string | null>(
     localStorage.getItem('visume_token')
   );
@@ -30,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [plan, setPlanState] = useState<'free' | 'premium' | null>(() => {
     return localStorage.getItem('visume_plan') as 'free' | 'premium' | null;
   });
+  const maxFotosCv = usuario?.maxFotosCv ?? (plan === 'premium' ? 10 : 1);
 
   const login = (newToken: string, newUsuario: Usuario) => {
     setToken(newToken);
@@ -55,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       usuario,
       token,
       plan,
+      maxFotosCv,
       login,
       logout,
       setPlan,

@@ -5,9 +5,9 @@ import ParticlesBackground from "./components/shared/ParticlesBackground";
 import HomePage from "./pages/HomePage";
 import GeneratorPage from "./pages/GeneratorPage";
 import EditorPage from "./pages/EditorPage";
-import GalleryPage from "./pages/GalleryPage";
 import AuthPage from "./pages/AuthPage";
 import ProfilePage from "./pages/ProfilePage";
+import AdminPage from "./pages/AdminPage";
 import { useAuth } from "./context/AuthContext";
 
 export default function App() {
@@ -32,9 +32,12 @@ export default function App() {
   };
 
   const handleGenerate = (resumeData: any) => {
-    setGeneratedResume(resumeData);
-    setCurrentSection("editor");
-  };
+  setGeneratedResume(resumeData);
+  if (resumeData?.id) {
+    localStorage.setItem('visume_current_cv_id', resumeData.id.toString());
+  }
+  setCurrentSection("editor");
+};
 
   const handleLoginSuccess = () => {
     setCurrentSection("generator");
@@ -60,9 +63,9 @@ export default function App() {
         {currentSection === "home" && <HomePage onGetStarted={() => scrollToSection("generator")} />}
         {currentSection === "generator" && <GeneratorPage onGenerate={handleGenerate} />}
         {currentSection === "editor" && <EditorPage resumeData={generatedResume} />}
-        {currentSection === "gallery" && <GalleryPage />}
         {currentSection === "auth" && <AuthPage onLoginSuccess={handleLoginSuccess} />}
         {currentSection === "profile" && <ProfilePage onNavigate={scrollToSection} onLogout={handleLogout} />}
+        {currentSection === "admin" && <AdminPage />}
       </main>
       <Footer />
     </div>

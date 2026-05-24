@@ -41,6 +41,9 @@ public class Planes {
     @Column(name = "max_curriculums", nullable = false)
     private Integer maxCurriculums = 1;
 
+    @Column(name = "max_fotos_cv", nullable = false)
+    private Integer maxFotosCv = 1;
+
     @Column(name = "creado_en", nullable = false)
     private LocalDateTime creadoEn;
 
