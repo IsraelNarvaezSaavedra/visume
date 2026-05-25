@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const plan: 'free' | 'premium' | null = usuario
   ? (usuario.estaPagando ? 'premium' : 'free')
   : null;
-  const maxFotosCv = usuario?.maxFotosCv ?? (plan === 'premium' ? 10 : 1);
+  const maxFotosCv = usuario?.maxFotosCv ?? (plan === 'premium' ? 6 : 1);
 
   const login = (newToken: string, newUsuario: Usuario) => {
     setToken(newToken);

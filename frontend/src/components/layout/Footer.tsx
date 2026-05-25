@@ -2,15 +2,17 @@ import { motion } from 'motion/react';
 import { Github, Twitter, Linkedin, Mail, Heart } from 'lucide-react';
 import logo from 'figma:asset/1d2887d0560c03701e2c49da822f19698caa5d77.png';
 
-export default function Footer() {
+interface FooterProps {
+  onNavigate?: (section: string) => void;
+}
 
-
-  const socialLinks = [
-    { icon: Twitter, href: '#', label: 'Twitter' },
-    { icon: Github, href: '#', label: 'GitHub' },
-    { icon: Linkedin, href: '#', label: 'LinkedIn' },
-    { icon: Mail, href: '#', label: 'Email' },
-  ];
+export default function Footer({ onNavigate }: FooterProps) {
+  const handleNavClick = (section: string) => {
+    if (onNavigate) {
+      onNavigate(section);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   return (
     <footer className="relative mt-24 border-t border-cyan-500/20 bg-slate-950/50 backdrop-blur-md">
@@ -37,49 +39,29 @@ export default function Footer() {
             <p className="text-slate-400 mb-6">
               Transforma tu experiencia profesional en una página web interactiva y moderna con el poder de la inteligencia artificial.
             </p>
-
-            {/* Redes sociales */}
-            <div className="flex gap-3">
-              {socialLinks.map((social) => (
-                <motion.a
-                  key={social.label}
-                  href={social.href}
-                  whileHover={{
-                    scale: 1.1,
-                    y: -2,
-                    boxShadow: '0 0 20px rgba(6, 182, 212, 0.4)'
-                  }}
-                  whileTap={{ scale: 0.9 }}
-                  className="w-10 h-10 rounded-lg bg-slate-900 border border-cyan-500/30 hover:border-cyan-500/50 flex items-center justify-center transition-all group"
-                  aria-label={social.label}
-                >
-                  <social.icon size={18} className="text-slate-400 group-hover:text-cyan-400 transition-colors" />
-                </motion.a>
-              ))}
-            </div>
           </div>
 
           {/* Enlaces */}
-          <div className="lg:col-span-4 flex justify-end gap-12">
+          <div className="lg:col-span-4">
             <div>
               <h3 className="mb-4 text-sm tracking-wide text-cyan-400 uppercase">
-                Visume
+                Navegación
               </h3>
-              <ul className="space-y-3">
+              <ul className="space-y-3 flex flex-col">
                 <li>
-                  <a href="#home" className="text-slate-400 hover:text-white transition-colors inline-block">
+                  <button onClick={() => handleNavClick('home')} className="text-slate-400 hover:text-white transition-colors inline-block">
                     Inicio
-                  </a>
+                  </button>
                 </li>
                 <li>
-                  <a href="#generator" className="text-slate-400 hover:text-white transition-colors inline-block">
+                  <button onClick={() => handleNavClick('generator')} className="text-slate-400 hover:text-white transition-colors inline-block">
                     Generador
-                  </a>
+                  </button>
                 </li>
                 <li>
-                  <a href="#profile" className="text-slate-400 hover:text-white transition-colors inline-block">
+                  <button onClick={() => handleNavClick('profile')} className="text-slate-400 hover:text-white transition-colors inline-block">
                     Mi Perfil
-                  </a>
+                  </button>
                 </li>
               </ul>
             </div>

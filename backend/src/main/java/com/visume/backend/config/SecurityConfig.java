@@ -35,6 +35,7 @@ public class SecurityConfig {
                 // Rutas públicas
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/files/**").permitAll()
+                .requestMatchers("/api/curriculum/public/**").permitAll()
                 // Todo lo demás requiere token
                 .anyRequest().authenticated()
             )

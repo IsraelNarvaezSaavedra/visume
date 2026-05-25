@@ -71,27 +71,64 @@ export default function Editor({ resumeData }: EditorProps) {
   const [saving, setSaving] = useState(false);
   const [newSkill, setNewSkill] = useState('');
   const [newSkillCategory, setNewSkillCategory] = useState<'technical' | 'soft' | 'tools'>('technical');
-const [loading, setLoading] = useState(!!resumeData?.id);
+  const [loading, setLoading] = useState(!resumeData?.personalInfo);
 
 useEffect(() => {
-  // Intenta usar el id del resumeData, o el guardado en localStorage
   const id = resumeData?.id || localStorage.getItem('visume_current_cv_id');
   if (!id) return;
 
+  if (resumeData?.personalInfo) {
+    setData(resumeData);
+    setPrimaryColor(resumeData?.style?.primaryColor || '#06b6d4');
+    setSelectedFont(resumeData?.style?.font || 'Inter');
+    setSelectedLayout(resumeData?.style?.template || 'modern');
+    setLoading(false);
+    return;
+  }
+
+  // Si no hay datos (vengo desde perfil con solo el id), hacemos fetch
+  let cancelled = false;
   setLoading(true);
   fetch(`http://localhost:8080/api/curriculum/${id}`, {
     headers: { Authorization: `Bearer ${token}` }
   })
     .then(res => res.json())
     .then(loaded => {
-      setData(loaded);
-      setPrimaryColor(loaded?.style?.primaryColor || '#06b6d4');
-      setSelectedFont(loaded?.style?.font || 'Inter');
-      setSelectedLayout(loaded?.style?.template || 'modern');
+      if (!cancelled) {
+        setData(loaded);
+        setPrimaryColor(loaded?.style?.primaryColor || '#06b6d4');
+        setSelectedFont(loaded?.style?.font || 'Inter');
+        setSelectedLayout(loaded?.style?.template || 'modern');
+      }
     })
     .catch(console.error)
-    .finally(() => setLoading(false));
+    .finally(() => { if (!cancelled) setLoading(false); });
+
+  return () => { cancelled = true; };
 }, []);
+
+// Cargar fotos de galería (no principales)
+useEffect(() => {
+  const id = data?.id;
+  if (!id) return;
+
+  let cancelled = false;
+  fetch(apiUrl(`/api/files/curriculum/${id}/fotos`), {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+    .then(res => res.json())
+    .then((fotos: any[]) => {
+      if (!cancelled) {
+        // Filtrar solo fotos de galería (no principales)
+        const fotosGaleria = fotos.filter(f => !f.esPrincipal);
+        setData((prev: any) => ({ ...prev, fotos: fotosGaleria }));
+      }
+    })
+    .catch(console.error);
+
+  return () => { cancelled = true; };
+}, [data?.id, token]);
+
   const colorPresets = [
     { name: 'Cyan', value: '#06b6d4', gradient: 'from-cyan-500 to-blue-500' },
     { name: 'Violet', value: '#8b5cf6', gradient: 'from-violet-500 to-purple-500' },
@@ -677,112 +714,166 @@ useEffect(() => {
       <p className="text-slate-500 text-sm">{layout.desc}</p>
     </motion.button>
   );
-})}{/*
-                    {layouts.map((layout) => (
-                      <motion.button key={layout.id} whileHover={{ scale: 1.02 }} onClick={() => setSelectedLayout(layout.id)}
-                        className={`w-full p-4 rounded-xl text-left transition-all ${selectedLayout === layout.id ? 'bg-slate-800 border-2 border-cyan-500/50' : 'bg-slate-950/50 border border-slate-700'}`}>
-                        <div className="h-14 mb-3 rounded-lg overflow-hidden bg-slate-700">
-                          {layout.id === 'modern' && (
-                            <div className="h-full flex flex-col">
-                              <div className="h-6 flex-shrink-0" style={{ backgroundColor: primaryColor + '80' }} />
-                              <div className="flex-1 p-1 space-y-1">
-                                <div className="h-1 bg-slate-500 rounded w-2/3 mx-auto" />
-                                <div className="h-1 bg-slate-600 rounded w-full" />
-                              </div>
-                            </div>
-                          )}
-                          {layout.id === 'classic' && (
-                            <div className="h-full flex">
-                              <div className="w-10 flex-shrink-0" style={{ backgroundColor: primaryColor + '30' }} />
-                              <div className="flex-1 p-1 space-y-1">
-                                <div className="h-1.5 bg-slate-500 rounded w-1/2" />
-                                <div className="h-1 bg-slate-600 rounded w-full" />
-                                <div className="h-1 bg-slate-600 rounded w-3/4" />
-                              </div>
-                            </div>
-                          )}
-                          {layout.id === 'minimal' && (
-                            <div className="h-full p-2 space-y-1">
-                              <div className="h-2 bg-slate-400 rounded w-1/3" />
-                              <div className="h-px rounded w-full" style={{ backgroundColor: primaryColor + '80' }} />
-                              <div className="h-1 bg-slate-600 rounded w-full" />
-                              <div className="h-1 bg-slate-600 rounded w-2/3" />
-                            </div>
-                          )}
-                        </div>
-                        <p className="text-white font-medium">{layout.label}</p>
-                        <p className="text-slate-500 text-sm">{layout.desc}</p>
-                      </motion.button>
-                    ))}
-                      */}
+})}
                   </div>
                 </motion.div>
               )}
 
               {activeTab === 'content' && (
-                <motion.div key="content" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                  className="p-6 rounded-2xl bg-slate-900/70 backdrop-blur-md border border-cyan-500/30 space-y-5">
-                  <h3 className="text-lg text-cyan-400">Editar contenido</h3>
-                  {[
-                    { label: 'Nombre', path: 'personalInfo.name' },
-                    { label: 'Título profesional', path: 'personalInfo.title' },
-                    { label: 'Email', path: 'personalInfo.email' },
-                    { label: 'Teléfono', path: 'personalInfo.phone' },
-                    { label: 'Ubicación', path: 'personalInfo.location' },
-                    { label: 'LinkedIn', path: 'personalInfo.linkedin' },
-                    { label: 'GitHub', path: 'personalInfo.github' },
-                  ].map(field => (
-                    <div key={field.path}>
-                      <label className="block text-xs text-slate-500 mb-1">{field.label}</label>
-                      <input value={field.path.split('.').reduce((obj: any, k) => obj?.[k] ?? '', data)}
-                        onChange={e => update(field.path, e.target.value)}
-                        className="w-full px-3 py-2 bg-slate-950/50 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500/50" />
-                    </div>
-                  ))}
-                  <div>
-                    <label className="block text-xs text-slate-500 mb-1">Sobre mí</label>
-                    <textarea value={data?.personalInfo?.bio || ''} onChange={e => update('personalInfo.bio', e.target.value)}
-                      rows={4} className="w-full px-3 py-2 bg-slate-950/50 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500/50 resize-none" />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-slate-500 mb-2">Habilidades</label>
-                    <div className="flex gap-2 mb-3">
-                      {(['technical', 'soft', 'tools'] as const).map(cat => (
-                        <button key={cat} onClick={() => setNewSkillCategory(cat)}
-                          className={`px-2 py-1 rounded text-xs transition-all ${newSkillCategory === cat ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-500/50' : 'bg-slate-800 text-slate-400'}`}>
-                          {cat === 'technical' ? 'Técnicas' : cat === 'soft' ? 'Blandas' : 'Herramientas'}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      {(data?.skills?.[newSkillCategory] || []).map((skill: string, idx: number) => (
-                        <span key={idx} className="flex items-center gap-1 px-2 py-1 rounded-full text-xs border border-slate-600 text-slate-300">
-                          {skill}
-                          <button onClick={() => removeSkill(newSkillCategory, idx)} className="text-red-400"><X size={10} /></button>
-                        </span>
-                      ))}
-                    </div>
-                    <div className="flex gap-2">
-                      <input value={newSkill} onChange={e => setNewSkill(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && addSkill()} placeholder="Nueva habilidad..."
-                        className="flex-1 px-3 py-2 bg-slate-950/50 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500/50" />
-                      <button onClick={addSkill} className="px-3 py-2 rounded-lg bg-cyan-500/20 border border-cyan-500/40 text-cyan-400">
-                        <Plus size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
+  <motion.div key="content" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+    className="p-6 rounded-2xl bg-slate-900/70 backdrop-blur-md border border-cyan-500/30 space-y-5">
+    <h3 className="text-lg text-cyan-400">Editar contenido</h3>
+
+    {/* Info personal */}
+    {[
+      { label: 'Nombre', path: 'personalInfo.name' },
+      { label: 'Título profesional', path: 'personalInfo.title' },
+      { label: 'Email', path: 'personalInfo.email' },
+      { label: 'Teléfono', path: 'personalInfo.phone' },
+      { label: 'Ubicación', path: 'personalInfo.location' },
+      { label: 'LinkedIn', path: 'personalInfo.linkedin' },
+      { label: 'GitHub', path: 'personalInfo.github' },
+    ].map(field => (
+      <div key={field.path}>
+        <label className="block text-xs text-slate-500 mb-1">{field.label}</label>
+        <input value={field.path.split('.').reduce((obj: any, k) => obj?.[k] ?? '', data)}
+          onChange={e => update(field.path, e.target.value)}
+          className="w-full px-3 py-2 bg-slate-950/50 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500/50" />
+      </div>
+    ))}
+    <div>
+      <label className="block text-xs text-slate-500 mb-1">Sobre mí</label>
+      <textarea value={data?.personalInfo?.bio || ''} onChange={e => update('personalInfo.bio', e.target.value)}
+        rows={4} className="w-full px-3 py-2 bg-slate-950/50 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500/50 resize-none" />
+    </div>
+
+    {/* Experiencia */}
+    {data?.experience?.length > 0 && (
+      <div>
+        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Experiencia</p>
+        <div className="space-y-4">
+          {data.experience.map((exp: any, idx: number) => (
+            <div key={idx} className="p-3 rounded-xl bg-slate-950/50 border border-slate-700 space-y-2">
+              <input placeholder="Cargo" value={exp.position || ''}
+                onChange={e => updateExp(idx, 'position', e.target.value)}
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500/50" />
+              <input placeholder="Empresa" value={exp.company || ''}
+                onChange={e => updateExp(idx, 'company', e.target.value)}
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500/50" />
+              <div className="grid grid-cols-2 gap-2">
+                <input placeholder="Fecha inicio" value={exp.startDate || ''}
+                  onChange={e => updateExp(idx, 'startDate', e.target.value)}
+                  className="px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500/50" />
+                <input placeholder="Fecha fin" value={exp.endDate || ''}
+                  onChange={e => updateExp(idx, 'endDate', e.target.value)}
+                  className="px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500/50" />
+              </div>
+              <textarea placeholder="Descripción" value={exp.description || ''}
+                onChange={e => updateExp(idx, 'description', e.target.value)}
+                rows={3} className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500/50 resize-none" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {/* Educación */}
+    {data?.education?.length > 0 && (
+      <div>
+        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Educación</p>
+        <div className="space-y-4">
+          {data.education.map((edu: any, idx: number) => (
+            <div key={idx} className="p-3 rounded-xl bg-slate-950/50 border border-slate-700 space-y-2">
+              <input placeholder="Título" value={edu.degree || ''}
+                onChange={e => updateEdu(idx, 'degree', e.target.value)}
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500/50" />
+              <input placeholder="Campo de estudio" value={edu.field || ''}
+                onChange={e => updateEdu(idx, 'field', e.target.value)}
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500/50" />
+              <input placeholder="Centro" value={edu.institution || ''}
+                onChange={e => updateEdu(idx, 'institution', e.target.value)}
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500/50" />
+              <div className="grid grid-cols-2 gap-2">
+                <input placeholder="Fecha inicio" value={edu.startDate || ''}
+                  onChange={e => updateEdu(idx, 'startDate', e.target.value)}
+                  className="px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500/50" />
+                <input placeholder="Fecha fin" value={edu.endDate || ''}
+                  onChange={e => updateEdu(idx, 'endDate', e.target.value)}
+                  className="px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500/50" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {/* Idiomas */}
+    {data?.languages?.length > 0 && (
+      <div>
+        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Idiomas</p>
+        <div className="space-y-2">
+          {data.languages.map((l: any, idx: number) => (
+            <div key={idx} className="grid grid-cols-2 gap-2">
+              <input placeholder="Idioma" value={l.language || ''}
+                onChange={e => {
+                  const l2 = [...data.languages]; l2[idx] = { ...l2[idx], language: e.target.value };
+                  setData((p: any) => ({ ...p, languages: l2 }));
+                }}
+                className="px-3 py-2 bg-slate-950/50 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500/50" />
+              <input placeholder="Nivel" value={l.level || ''}
+                onChange={e => {
+                  const l2 = [...data.languages]; l2[idx] = { ...l2[idx], level: e.target.value };
+                  setData((p: any) => ({ ...p, languages: l2 }));
+                }}
+                className="px-3 py-2 bg-slate-950/50 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500/50" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {/* Habilidades */}
+    <div>
+      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Habilidades</p>
+      <div className="flex gap-2 mb-3">
+        {(['technical', 'soft', 'tools'] as const).map(cat => (
+          <button key={cat} onClick={() => setNewSkillCategory(cat)}
+            className={`px-2 py-1 rounded text-xs transition-all ${newSkillCategory === cat ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-500/50' : 'bg-slate-800 text-slate-400'}`}>
+            {cat === 'technical' ? 'Técnicas' : cat === 'soft' ? 'Blandas' : 'Herramientas'}
+          </button>
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-2 mb-3">
+        {(data?.skills?.[newSkillCategory] || []).map((skill: string, idx: number) => (
+          <span key={idx} className="flex items-center gap-1 px-2 py-1 rounded-full text-xs border border-slate-600 text-slate-300">
+            {skill}
+            <button onClick={() => removeSkill(newSkillCategory, idx)} className="text-red-400"><X size={10} /></button>
+          </span>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <input value={newSkill} onChange={e => setNewSkill(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && addSkill()} placeholder="Nueva habilidad..."
+          className="flex-1 px-3 py-2 bg-slate-950/50 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500/50" />
+        <button onClick={addSkill} className="px-3 py-2 rounded-lg bg-cyan-500/20 border border-cyan-500/40 text-cyan-400">
+          <Plus size={16} />
+        </button>
+      </div>
+    </div>
+  </motion.div>
+)}
               {activeTab === 'photos' && (
   <motion.div key="photos" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
     className="p-6 rounded-2xl bg-slate-900/70 backdrop-blur-md border border-cyan-500/30">
     <h3 className="mb-4 text-lg text-cyan-400">Fotos del CV</h3>
     {data?.id ? (
       <CurriculumFotos
-        idCurriculum={data.id}
-        esPremium={plan === 'premium'}
-        maxFotos={maxFotosCv}
-      />
+  idCurriculum={data.id}
+  esPremium={plan === 'premium'}
+  maxFotos={maxFotosCv}
+  onFotoPrincipalChange={(url: string) => setData((prev: any) => ({ ...prev, fotoPrincipal: url }))}
+  onFotosChange={(fotos: any[]) => setData((prev: any) => ({ ...prev, fotos }))}
+/>
     ) : (
       <p className="text-slate-400 text-sm">Guarda el CV primero para poder añadir fotos.</p>
     )}

@@ -116,22 +116,50 @@ public class FileController {
             }
 
             // Verificar límite de fotos según plan
-            int maxFotos = usuario.getPlan() != null ? usuario.getPlan().getMaxFotosCv() : 1;
-            int fotosActuales = fotosRepo.countByCurriculumIdCurriculum(idCurriculum);
-            if (fotosActuales >= maxFotos) {
-                return ResponseEntity.status(403).body(
-                        Map.of("error", "Límite de fotos alcanzado",
-                                "limite", maxFotos,
-                                "plan", usuario.getPlan() != null ? usuario.getPlan().getNombre() : "FREE"));
+            int maxFotosGaleria = usuario.getPlan() != null
+                    ? usuario.getPlan().getMaxFotosCv()
+                    : (usuario.isEstaPagando() ? 6 : 0);
+            int fotosGaleriaActuales = fotosRepo.countByCurriculumIdCurriculumAndEsPrincipalFalse(idCurriculum);
+            int fotosPrincipalesActuales = fotosRepo.countByCurriculumIdCurriculumAndEsPrincipalTrue(idCurriculum);
+
+            if (esPrincipal) {
+                // Foto de perfil: solo puede haber 1, siempre permitida (reemplaza la anterior si existe)
+                if (fotosPrincipalesActuales > 0) {
+                    // Eliminar la anterior antes de guardar la nueva
+                    fotosRepo.findByCurriculumIdCurriculumAndEsPrincipalTrue(idCurriculum)
+                            .ifPresent(fotoAnterior -> {
+                                try {
+                                    Path p = Paths.get(uploadDir)
+                                            .resolve(fotoAnterior.getUrl().replace("/api/files/", ""));
+                                    Files.deleteIfExists(p);
+                                } catch (IOException ignored) {
+                                }
+                                fotosRepo.delete(fotoAnterior);
+                            });
+                }
+            } else {
+                // Foto de galería: verificar límite del plan
+                if (maxFotosGaleria <= 0) {
+                    return ResponseEntity.status(403).body(
+                            Map.of("error", "Las fotos de galería son exclusivas del plan Premium"));
+                }
+                if (fotosGaleriaActuales >= maxFotosGaleria) {
+                    return ResponseEntity.status(403).body(
+                            Map.of("error", "Límite de fotos de galería alcanzado",
+                                    "limite", maxFotosGaleria,
+                                    "plan", usuario.getPlan().getNombre()));
+                }
             }
 
+            // Quitar el "la primera es siempre principal" — ahora esPrincipal viene
+            // explícito
             String url = guardarArchivo(file, "curriculum-fotos");
 
             CurriculumFotos foto = new CurriculumFotos();
             foto.setCurriculum(curriculum);
             foto.setUrl(url);
-            foto.setEsPrincipal(esPrincipal || fotosActuales == 0); // la primera es siempre principal
-            foto.setOrden(fotosActuales); // orden = posición actual
+            foto.setEsPrincipal(esPrincipal);
+            foto.setOrden(esPrincipal ? 0 : fotosGaleriaActuales);
             fotosRepo.save(foto);
 
             return ResponseEntity.ok(Map.of(

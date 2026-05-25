@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { motion, useScroll, useTransform, useInView } from 'motion/react';
+import { apiUrl } from '../../config/api';
 
 interface CVTemplateProps {
   data: any;
@@ -49,6 +50,21 @@ export default function ElegantTemplate({ data, primaryColor, font }: CVTemplate
               className="text-5xl md:text-7xl font-light text-white tracking-widest uppercase mb-4">
               {data?.personalInfo?.name}
             </motion.h1>
+            <motion.div
+  initial={{ scale: 0 }}
+  animate={{ scale: 1 }}
+  transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
+  className="w-24 h-24 rounded-full mx-auto mb-6 overflow-hidden border-2"
+  style={{ borderColor: primaryColor }}>
+  {data?.fotoPrincipal ? (
+    <img src={apiUrl(data.fotoPrincipal)} alt="foto" className="w-full h-full object-cover" />
+  ) : (
+    <div className="w-full h-full flex items-center justify-center text-3xl font-light text-white"
+      style={{ backgroundColor: primaryColor + '30' }}>
+      {data?.personalInfo?.name?.[0] || '?'}
+    </div>
+  )}
+</motion.div>
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -178,6 +194,29 @@ export default function ElegantTemplate({ data, primaryColor, font }: CVTemplate
                   </div>
                 </div>
               ))}
+            </div>
+          </FadeIn>
+        )}
+
+        {/* Galería de Proyectos/Obras */}
+        {data?.fotos?.length > 0 && (
+          <FadeIn delay={0.3}>
+            <div>
+              <h2 className="text-xs tracking-[0.3em] uppercase text-slate-400 mb-8 text-center">Proyectos & Obras</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {data.fotos.slice(0, 6).map((foto: any, idx: number) => (
+                  <motion.div key={foto.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: idx * 0.08 }}
+                    whileHover={{ scale: 1.03 }}
+                    className="relative overflow-hidden rounded-lg aspect-square group cursor-default border border-slate-200">
+                    <img src={apiUrl(foto.url)} alt="proyecto" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </motion.div>
+                ))}
+              </div>
             </div>
           </FadeIn>
         )}

@@ -44,6 +44,7 @@ public class PerfilService {
                     r.setId(c.getIdCurriculum());
                     r.setTitulo(c.getTitulo());
                     r.setFechaCreacion(c.getFechaCreacion());
+                    r.setShareCode(c.getShareCode());
                     return r;
                 }).collect(Collectors.toList());
 

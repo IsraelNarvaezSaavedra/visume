@@ -67,7 +67,7 @@ export default function App() {
         {currentSection === "profile" && <ProfilePage onNavigate={scrollToSection} onLogout={handleLogout} />}
         {currentSection === "admin" && <AdminPage />}
       </main>
-      <Footer />
+      <Footer onNavigate={scrollToSection} />
     </div>
   );
 }

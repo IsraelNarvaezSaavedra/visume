@@ -47,6 +47,9 @@ public class Curriculums {
     @Column(name = "fecha_creacion", nullable = false)
     private LocalDateTime fechaCreacion;
 
+    @Column(name = "share_code", length = 50, unique = true, nullable = true)
+    private String shareCode;
+
     @OneToMany(mappedBy = "curriculum", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CurriculumFotos> fotos;
 

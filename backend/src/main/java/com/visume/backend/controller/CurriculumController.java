@@ -75,4 +75,14 @@ public ResponseEntity<?> actualizar(@PathVariable Integer id,
         return ResponseEntity.badRequest().body(e.getMessage());
     }
 }
+
+@GetMapping("/public/{shareCode}")
+public ResponseEntity<?> obtenerPublico(@PathVariable String shareCode) {
+    try {
+        CurriculumResponseDTO response = curriculumService.obtenerCurriculumPublico(shareCode);
+        return ResponseEntity.ok(response);
+    } catch (Exception e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
+    }
+}
 }

@@ -13,6 +13,7 @@ import reactor.core.publisher.Flux;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class CurriculumService {
@@ -136,6 +137,32 @@ public class CurriculumService {
         if (!curriculum.getUsuario().getUsername().equals(username))
             throw new RuntimeException("No tienes permiso");
 
+        // Obtener template anterior
+        String templateAnterior = null;
+        var styleAnterior = seccionesRepo.findByCurriculumAndTipoSeccion(curriculum, "style");
+        if (styleAnterior.isPresent()) {
+            CurriculumResponseDTO.Style styleObj = objectMapper.readValue(
+                styleAnterior.get().getDatos(), 
+                CurriculumResponseDTO.Style.class
+            );
+            templateAnterior = styleObj.getTemplate();
+        }
+
+        String templateNuevo = data.getStyle().getTemplate();
+        String[] plantillasPremium = { "bold", "creative", "elegant", "modernpro" };
+
+        boolean eraPlantillaPremium = esPlantillaPremium(templateAnterior, plantillasPremium);
+        boolean esAhoraPlantillaPremium = esPlantillaPremium(templateNuevo, plantillasPremium);
+
+        // Generar shareCode si cambió a plantilla premium
+        if (esAhoraPlantillaPremium && !eraPlantillaPremium && curriculum.getShareCode() == null) {
+            curriculum.setShareCode(generarShareCode());
+        } 
+        // Eliminar shareCode si cambió a plantilla normal
+        else if (!esAhoraPlantillaPremium && eraPlantillaPremium && curriculum.getShareCode() != null) {
+            curriculum.setShareCode(null);
+        }
+
         // Actualiza cada sección
         actualizarSeccion(curriculum, "personalInfo", data.getPersonalInfo());
         actualizarSeccion(curriculum, "experience", data.getExperience());
@@ -151,6 +178,18 @@ public class CurriculumService {
 
         curriculum.setTitulo(data.getPersonalInfo().getName() + " - Curriculum");
         curriculumsRepo.save(curriculum);
+    }
+
+    private boolean esPlantillaPremium(String template, String[] plantillasPremium) {
+        if (template == null) return false;
+        for (String premium : plantillasPremium) {
+            if (premium.equals(template)) return true;
+        }
+        return false;
+    }
+
+    private String generarShareCode() {
+        return UUID.randomUUID().toString().substring(0, 12).toUpperCase();
     }
 
     private void actualizarSeccion(Curriculums curriculum, String tipo, Object datos) throws Exception {
@@ -177,6 +216,7 @@ public class CurriculumService {
 
     CurriculumResponseDTO dto = new CurriculumResponseDTO();
     dto.setId(curriculum.getIdCurriculum());
+    dto.setShareCode(curriculum.getShareCode());
 
     List<CurriculumSecciones> secciones = seccionesRepo.findByCurriculum(curriculum);
 
@@ -205,6 +245,45 @@ if (!fotos.isEmpty()) {
         .map(CurriculumFotos::getUrl)
         .toList());
 }
+
+    return dto;
+}
+
+public CurriculumResponseDTO obtenerCurriculumPublico(String shareCode) throws Exception {
+    Curriculums curriculum = curriculumsRepo.findByShareCode(shareCode)
+            .orElseThrow(() -> new RuntimeException("Curriculum no encontrado"));
+
+    CurriculumResponseDTO dto = new CurriculumResponseDTO();
+    dto.setId(curriculum.getIdCurriculum());
+    dto.setShareCode(curriculum.getShareCode());
+
+    List<CurriculumSecciones> secciones = seccionesRepo.findByCurriculum(curriculum);
+
+    for (CurriculumSecciones seccion : secciones) {
+        String datos = seccion.getDatos();
+        switch (seccion.getTipoSeccion()) {
+            case "personalInfo" -> dto.setPersonalInfo(objectMapper.readValue(datos, CurriculumResponseDTO.PersonalInfo.class));
+            case "experience"   -> dto.setExperience(objectMapper.readValue(datos, objectMapper.getTypeFactory().constructCollectionType(List.class, CurriculumResponseDTO.Experience.class)));
+            case "education"    -> dto.setEducation(objectMapper.readValue(datos, objectMapper.getTypeFactory().constructCollectionType(List.class, CurriculumResponseDTO.Education.class)));
+            case "skills"       -> dto.setSkills(objectMapper.readValue(datos, CurriculumResponseDTO.Skills.class));
+            case "style"        -> dto.setStyle(objectMapper.readValue(datos, CurriculumResponseDTO.Style.class));
+            case "projects"     -> dto.setProjects(objectMapper.readValue(datos, objectMapper.getTypeFactory().constructCollectionType(List.class, CurriculumResponseDTO.Project.class)));
+            case "certifications" -> dto.setCertifications(objectMapper.readValue(datos, objectMapper.getTypeFactory().constructCollectionType(List.class, CurriculumResponseDTO.Certification.class)));
+            case "languages"    -> dto.setLanguages(objectMapper.readValue(datos, objectMapper.getTypeFactory().constructCollectionType(List.class, CurriculumResponseDTO.Language.class)));
+        }
+    }
+
+    List<CurriculumFotos> fotos = fotosRepo.findByCurriculumIdCurriculumOrderByOrdenAsc(curriculum.getIdCurriculum());
+    if (!fotos.isEmpty()) {
+        dto.setFotoPrincipal(fotos.stream()
+            .filter(CurriculumFotos::isEsPrincipal)
+            .findFirst()
+            .map(CurriculumFotos::getUrl)
+            .orElse(fotos.get(0).getUrl()));
+        dto.setFotosGaleria(fotos.stream()
+            .map(CurriculumFotos::getUrl)
+            .toList());
+    }
 
     return dto;
 }

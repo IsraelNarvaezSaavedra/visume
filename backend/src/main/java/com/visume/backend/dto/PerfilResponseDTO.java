@@ -24,5 +24,6 @@ public class PerfilResponseDTO {
         private Integer id;
         private String titulo;
         private LocalDateTime fechaCreacion;
+        private String shareCode;
     }
 }

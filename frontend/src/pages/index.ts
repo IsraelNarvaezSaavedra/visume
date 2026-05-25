@@ -4,3 +4,4 @@ export { default as GeneratorPage } from './GeneratorPage';
 export { default as EditorPage } from './EditorPage';
 export { default as AuthPage } from './AuthPage';
 export { default as AdminPage } from './AdminPage';
+export { default as PublicCVPage } from './PublicCVPage';

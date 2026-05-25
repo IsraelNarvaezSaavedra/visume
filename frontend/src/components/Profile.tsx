@@ -17,6 +17,8 @@ import {
   Lock,
   ChevronRight,
   AlertTriangle,
+  Eye,
+  Copy,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { apiUrl } from "../config/api";
@@ -30,6 +32,7 @@ interface CurriculumResumen {
   id: number;
   titulo: string;
   fechaCreacion: string;
+  shareCode?: string | null;
 }
 
 interface PerfilData {
@@ -528,7 +531,7 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
 
               {/* Lista de curriculums */}
               {totalCvs > 0 &&
-                perfil?.curriculums?.map((cv) => (
+                perfil?.curriculums?.map((cv: any) => (
                   <motion.div
                     key={cv.id}
                     initial={{ opacity: 0, y: 10 }}
@@ -546,9 +549,43 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
                             { year: "numeric", month: "long", day: "numeric" },
                           )}
                         </p>
+                        {cv.shareCode && (
+                          <p className="text-cyan-400 text-xs mt-2">
+                            Link público disponible
+                          </p>
+                        )}
                       </div>
 
                       <div className="flex items-center gap-2">
+                        {cv.shareCode && (
+                          <>
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => {
+                                window.open(`/cv/${cv.shareCode}`, '_blank');
+                              }}
+                              className="p-2 rounded-lg border border-cyan-500/30 hover:border-cyan-500/50 text-cyan-400 transition-all"
+                              title="Ver en vivo"
+                            >
+                              <Eye size={15} />
+                            </motion.button>
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => {
+                                const url = `${window.location.origin}/cv/${cv.shareCode}`;
+                                navigator.clipboard.writeText(url);
+                                setExito('Enlace copiado al portapapeles');
+                                setTimeout(() => setExito(null), 2000);
+                              }}
+                              className="p-2 rounded-lg border border-cyan-500/30 hover:border-cyan-500/50 text-cyan-400 transition-all"
+                              title="Copiar enlace"
+                            >
+                              <Copy size={15} />
+                            </motion.button>
+                          </>
+                        )}
                         <motion.button
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
@@ -560,6 +597,7 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
                             onNavigate("editor");
                           }}
                           className="p-2 rounded-lg border border-cyan-500/30 hover:border-cyan-500/50 text-cyan-400 transition-all"
+                          title="Editar"
                         >
                           <Edit3 size={15} />
                         </motion.button>
@@ -589,6 +627,7 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
                             whileTap={{ scale: 0.95 }}
                             onClick={() => setConfirmDelete(cv.id)}
                             className="p-2 rounded-lg border border-red-500/30 hover:border-red-500/50 text-red-400 transition-all"
+                            title="Eliminar"
                           >
                             <Trash2 size={15} />
                           </motion.button>

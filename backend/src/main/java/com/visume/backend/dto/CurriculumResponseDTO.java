@@ -7,6 +7,7 @@ import java.util.List;
 public class CurriculumResponseDTO {
 
     private Integer id;
+    private String shareCode;
     private PersonalInfo personalInfo;
     private List<Experience> experience;
     private List<Education> education;

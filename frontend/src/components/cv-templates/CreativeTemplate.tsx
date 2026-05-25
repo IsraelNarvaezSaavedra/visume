@@ -275,6 +275,32 @@ export default function CreativeTemplate({ data, primaryColor, font }: CVTemplat
             </div>
           )}
 
+          {/* Galería de Proyectos/Obras */}
+          {data?.fotos?.length > 0 && (
+            <div>
+              <motion.h2 initial={{ opacity: 0, x: -40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
+                className="text-3xl font-black mb-8" style={{ color: primaryColor }}>
+                PROYECTOS & OBRAS
+              </motion.h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-16">
+                {data.fotos.slice(0, 6).map((foto: any, idx: number) => (
+                  <motion.div key={foto.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: idx * 0.1 }}
+                    whileHover={{ scale: 1.05 }}
+                    className="relative overflow-hidden rounded-xl shadow-lg aspect-square group cursor-default">
+                    <img src={apiUrl(foto.url)} alt="proyecto" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <span className="text-white font-black text-2xl">+</span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Idiomas */}
           {data?.languages?.length > 0 && (
             <div>

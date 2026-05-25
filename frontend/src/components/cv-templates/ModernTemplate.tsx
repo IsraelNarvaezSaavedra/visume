@@ -353,9 +353,37 @@ export default function ModernTemplate({
           </RevealSection>
         )}
 
+        {/* Galería de Proyectos/Obras */}
+        {data?.fotos?.length > 0 && (
+          <RevealSection delay={0.4}>
+            <h2
+              className="text-2xl font-bold mb-6 pb-2 border-b-2"
+              style={{ color: primaryColor, borderColor: primaryColor }}
+            >
+              Proyectos & Obras
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-12">
+              {data.fotos.slice(0, 6).map((foto: any, idx: number) => (
+                <motion.div key={foto.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: idx * 0.08 }}
+                  whileHover={{ scale: 1.05 }}
+                  className="relative overflow-hidden rounded-lg aspect-square group cursor-default border-2"
+                  style={{ borderColor: primaryColor + '30', backgroundColor: primaryColor + '05' }}>
+                  <img src={apiUrl(foto.url)} alt="proyecto" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity" 
+                    style={{ backgroundColor: primaryColor + '40' }} />
+                </motion.div>
+              ))}
+            </div>
+          </RevealSection>
+        )}
+
         {/* Idiomas */}
         {data?.languages?.length > 0 && (
-          <RevealSection delay={0.4}>
+          <RevealSection delay={0.5}>
             <h2
               className="text-2xl font-bold mb-6 pb-2 border-b-2"
               style={{ color: primaryColor, borderColor: primaryColor }}

@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'motion/react';
-
+import { apiUrl } from '../../config/api';
 interface CVTemplateProps {
   data: any;
   primaryColor: string;
@@ -36,6 +36,21 @@ export default function BoldTemplate({ data, primaryColor, font }: CVTemplatePro
             initial={{ opacity: 0, x: -80 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, type: 'spring' }}>
+              <motion.div
+  initial={{ scale: 0 }}
+  animate={{ scale: 1 }}
+  transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
+  className="w-24 h-24 rounded-full mb-6 overflow-hidden border-4"
+  style={{ borderColor: 'rgba(255,255,255,0.4)' }}>
+  {data?.fotoPrincipal ? (
+    <img src={apiUrl(data.fotoPrincipal)} alt="foto" className="w-full h-full object-cover" />
+  ) : (
+    <div className="w-full h-full flex items-center justify-center text-3xl font-black text-white"
+      style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+      {data?.personalInfo?.name?.[0] || '?'}
+    </div>
+  )}
+</motion.div>
             <h1 className="text-6xl md:text-8xl font-black text-white leading-none mb-2">
               {data?.personalInfo?.name?.split(' ')[0]}
             </h1>
@@ -156,6 +171,35 @@ export default function BoldTemplate({ data, primaryColor, font }: CVTemplatePro
                   ))}
                 </div>
               </div>
+            )}
+
+            {/* Galería de Proyectos/Obras */}
+            {data?.fotos?.length > 0 && (
+              <SlideIn from="left" delay={0.2}>
+                <div>
+                  <div className="flex items-center gap-4 mb-8">
+                    <div className="w-8 h-8 rounded flex items-center justify-center text-white font-black text-sm"
+                      style={{ backgroundColor: primaryColor }}>🎨</div>
+                    <h2 className="text-2xl font-black text-slate-900 uppercase tracking-wider">Proyectos & Obras</h2>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    {data.fotos.slice(0, 6).map((foto: any, idx: number) => (
+                      <motion.div key={foto.id}
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: idx * 0.1 }}
+                        whileHover={{ y: -8, boxShadow: `0 20px 40px ${primaryColor}30` }}
+                        className="relative overflow-hidden rounded-xl aspect-square group cursor-default border-2 shadow-md"
+                        style={{ borderColor: primaryColor + '40' }}>
+                        <img src={apiUrl(foto.url)} alt="proyecto" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-t opacity-0 group-hover:opacity-100 transition-opacity"
+                          style={{ backgroundImage: `linear-gradient(180deg, ${primaryColor}cc 0%, transparent 60%)` }} />
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </SlideIn>
             )}
           </div>
 
