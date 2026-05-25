@@ -40,7 +40,7 @@ public class UsuariosService {
                 .orElseThrow(() -> new RuntimeException("Email no encontrado"));
 
         if (!encoder.matches(dto.getContrasena(), usuario.getContrasena())) {
-            throw new RuntimeException("Contraseña incorrecta");
+            throw new RuntimeException("Usuario o contraseña incorrecta");
         }
 
         String token = jwtUtil.generarToken(usuario.getUsername());

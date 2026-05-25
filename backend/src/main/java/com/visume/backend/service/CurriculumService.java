@@ -23,19 +23,22 @@ public class CurriculumService {
     private final CurriculumSeccionesRepository seccionesRepo;
     private final CurriculumsMetadatosRepository metadatosRepo;
     private final ObjectMapper objectMapper;
+    private final CurriculumFotosRepository fotosRepo;
 
     public CurriculumService(GeminiService geminiService,
             PromptsRepository promptsRepo,
             CurriculumsRepository curriculumsRepo,
             CurriculumSeccionesRepository seccionesRepo,
             CurriculumsMetadatosRepository metadatosRepo,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            CurriculumFotosRepository fotosRepo) {
         this.geminiService = geminiService;
         this.promptsRepo = promptsRepo;
         this.curriculumsRepo = curriculumsRepo;
         this.seccionesRepo = seccionesRepo;
         this.metadatosRepo = metadatosRepo;
         this.objectMapper = objectMapper;
+        this.fotosRepo = fotosRepo;
     }
 
     @Transactional
@@ -190,6 +193,18 @@ public class CurriculumService {
             case "languages"    -> dto.setLanguages(objectMapper.readValue(datos, objectMapper.getTypeFactory().constructCollectionType(List.class, CurriculumResponseDTO.Language.class)));
         }
     }
+
+    List<CurriculumFotos> fotos = fotosRepo.findByCurriculumIdCurriculumOrderByOrdenAsc(curriculum.getIdCurriculum());
+if (!fotos.isEmpty()) {
+    dto.setFotoPrincipal(fotos.stream()
+        .filter(CurriculumFotos::isEsPrincipal)
+        .findFirst()
+        .map(CurriculumFotos::getUrl)
+        .orElse(fotos.get(0).getUrl()));
+    dto.setFotosGaleria(fotos.stream()
+        .map(CurriculumFotos::getUrl)
+        .toList());
+}
 
     return dto;
 }

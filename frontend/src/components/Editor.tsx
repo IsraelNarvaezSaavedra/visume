@@ -3,7 +3,15 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Palette, Type, Layout, Edit3, Image, Download, Globe, Award, Check, X, Plus, Save } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { apiUrl } from '../config/api';
 import CurriculumFotos from "./CurriculumFotos";
+
+// Plantillas Premium
+
+import BoldTemplate from './cv-templates/BoldTemplate';
+import CreativeTemplate from './cv-templates/CreativeTemplate';
+import ElegantTemplate from './cv-templates/ElegantTemplate';
+import ModernTemplate from './cv-templates/ModernTemplate';
 
 // ── EditableText ────────────────────────────────────────────────
 interface EditableProps {
@@ -102,10 +110,14 @@ useEffect(() => {
   ];
 
   const layouts = [
-    { id: 'modern', label: 'Moderno', desc: 'Header centrado con franja de color' },
-    { id: 'classic', label: 'Clásico', desc: 'Sidebar lateral con datos de contacto' },
-    { id: 'minimal', label: 'Minimalista', desc: 'Tipografía limpia sin decoración' },
-  ];
+  { id: 'modern',   label: 'Moderno',    desc: 'Header centrado con franja de color',      premium: false },
+  { id: 'classic',  label: 'Clásico',    desc: 'Sidebar lateral con datos de contacto',    premium: false },
+  { id: 'minimal',  label: 'Minimalista',desc: 'Tipografía limpia sin decoración',          premium: false },
+  { id: 'bold',     label: 'Bold',       desc: 'Header diagonal con tipografía impactante', premium: true  },
+  { id: 'creative', label: 'Creativo',   desc: 'Hero oscuro con partículas animadas',       premium: true  },
+  { id: 'elegant',  label: 'Elegante',   desc: 'Parallax suave y estética minimalista',     premium: true  },
+  { id: 'modernpro',label: 'Modern Pro', desc: 'Gradiente animado con barras de skills',    premium: true  },
+];
 
   const tabs = [
     { id: 'colors' as const, icon: Palette, label: 'Colores' },
@@ -180,8 +192,29 @@ useEffect(() => {
     }
   };
 
-  const handleExport = () => {
-    const nombre = data?.personalInfo?.name || 'curriculum';
+  const toBase64 = (url: string): Promise<string> =>
+  fetch(url)
+    .then(r => r.blob())
+    .then(blob => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    }));
+
+  const handleExport = async () => {
+  const nombre = data?.personalInfo?.name || 'curriculum';
+  
+  // Convierte la foto a base64 si existe
+  let fotoBase64 = '';
+  if (data?.fotoPrincipal) {
+    try {
+      fotoBase64 = await toBase64(`http://localhost:8080${data.fotoPrincipal}`);
+    } catch (e) {
+      console.warn('No se pudo cargar la foto:', e);
+    }
+  }
+
     const allSkills = [...(data?.skills?.technical || []), ...(data?.skills?.tools || []), ...(data?.skills?.soft || [])];
 
     const skillsHtml = allSkills.map((s: string) =>
@@ -214,6 +247,34 @@ useEffect(() => {
     ).join('') || '';
 
     const contacto = [data?.personalInfo?.email, data?.personalInfo?.phone, data?.personalInfo?.location, data?.personalInfo?.linkedin].filter(Boolean).join('  |  ');
+    const headerHtml =
+  selectedLayout === 'modern'
+    ? `<div style="background:${primaryColor};padding:32px;margin:-40px -40px 32px;text-align:center">
+        <h1 style="font-size:28px;font-weight:700;color:white;margin-bottom:4px">${nombre}</h1>
+        <div style="font-size:15px;color:rgba(255,255,255,0.85);margin-bottom:8px">${data?.personalInfo?.title || ''}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.7)">${contacto}</div>
+      </div>`
+    : selectedLayout === 'classic'
+? `<div style="display:flex;gap:0;min-height:100%">
+    <div style="width:180px;flex-shrink:0;padding:20px;background:${primaryColor}18">
+      <div style="width:64px;height:64px;border-radius:50%;overflow:hidden;border:3px solid ${primaryColor};margin:0 auto 12px">
+        ${fotoBase64
+          ? `<img src="${fotoBase64}" style="width:100%;height:100%;object-fit:cover" />`
+          : `<div style="width:100%;height:100%;background:${primaryColor};color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px">${nombre[0]}</div>`
+        }
+      </div>
+          <h1 style="font-size:18px;font-weight:700;text-align:center;margin-bottom:4px">${nombre}</h1>
+          <div style="font-size:13px;color:${primaryColor};text-align:center;margin-bottom:12px">${data?.personalInfo?.title || ''}</div>
+          <div style="font-size:12px;color:#475569;border-top:1px solid ${primaryColor}40;padding-top:10px">
+            ${[data?.personalInfo?.email, data?.personalInfo?.phone, data?.personalInfo?.location, data?.personalInfo?.linkedin].filter(Boolean).map(c => `<p style="margin-bottom:4px;word-break:break-all">${c}</p>`).join('')}
+          </div>
+        </div>
+        <div style="flex:1;padding:20px">`
+    : `<div style="padding-bottom:16px;border-bottom:1px solid ${primaryColor};margin-bottom:16px">
+        <h1 style="font-size:32px;font-weight:700;color:#0f172a;margin-bottom:4px">${nombre}</h1>
+        <div style="font-size:16px;color:#64748b;margin-bottom:8px">${data?.personalInfo?.title || ''}</div>
+        <div style="font-size:12px;color:#94a3b8">${contacto}</div>
+      </div>`;
 
     const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>${nombre}</title>
     <style>
@@ -222,25 +283,16 @@ useEffect(() => {
       @media print{body{padding:20px}}
       .sec{font-size:11px;letter-spacing:.12em;font-weight:700;color:${primaryColor};margin:20px 0 10px;text-transform:uppercase;border-bottom:1px solid ${primaryColor}30;padding-bottom:4px}
     </style></head><body>
-    ${selectedLayout === 'modern' ? `
-      <div style="background:${primaryColor};padding:32px;margin:-40px -40px 32px;text-align:center">
-        <h1 style="font-size:28px;font-weight:700;color:white;margin-bottom:4px">${nombre}</h1>
-        <div style="font-size:15px;color:rgba(255,255,255,0.85);margin-bottom:8px">${data?.personalInfo?.title || ''}</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.7)">${contacto}</div>
-      </div>` : `
-      <div style="padding-bottom:16px;border-bottom:2px solid ${primaryColor}30;margin-bottom:16px">
-        <h1 style="font-size:26px;font-weight:700;color:#0f172a;margin-bottom:4px">${nombre}</h1>
-        <div style="font-size:15px;color:${primaryColor};margin-bottom:8px">${data?.personalInfo?.title || ''}</div>
-        <div style="font-size:12px;color:#64748b">${contacto}</div>
-      </div>`}
+    ${headerHtml}
     ${data?.personalInfo?.bio ? `<div class="sec">SOBRE MÍ</div><p style="font-size:14px;color:#475569;line-height:1.6;margin-bottom:20px">${data.personalInfo.bio}</p>` : ''}
     ${expHtml ? `<div class="sec">EXPERIENCIA PROFESIONAL</div>${expHtml}` : ''}
     ${eduHtml ? `<div class="sec">FORMACIÓN ACADÉMICA</div>${eduHtml}` : ''}
     ${skillsHtml ? `<div class="sec">HABILIDADES</div><div style="margin-bottom:20px">${skillsHtml}</div>` : ''}
     ${langHtml ? `<div class="sec">IDIOMAS</div><div style="margin-bottom:16px">${langHtml}</div>` : ''}
     ${certHtml ? `<div class="sec">CERTIFICACIONES</div>${certHtml}` : ''}
-    <div style="margin-top:40px;padding-top:12px;border-top:1px solid #e2e8f0;text-align:center;font-size:11px;color:#cbd5e1">Creado con Visume</div>
-    </body></html>`;
+    ${selectedLayout === 'classic' ? `</div></div>` : ''}
+<div style="margin-top:40px;padding-top:12px;border-top:1px solid #e2e8f0;text-align:center;font-size:11px;color:#cbd5e1">Creado con Visume</div>
+</body></html>`;
 
     const w = window.open('', '_blank');
     if (!w) return;
@@ -460,10 +512,17 @@ useEffect(() => {
     <div className="flex gap-0" style={{ fontFamily: selectedFont }}>
       {/* Sidebar */}
       <div className="w-48 flex-shrink-0 p-5 min-h-full" style={{ backgroundColor: primaryColor + '15' }}>
-        <div className="w-16 h-16 rounded-full mx-auto mb-3 flex items-center justify-center text-2xl font-bold text-white"
-          style={{ backgroundColor: primaryColor }}>
-          {data?.personalInfo?.name?.[0] || '?'}
-        </div>
+        <div className="w-16 h-16 rounded-full mx-auto mb-3 overflow-hidden"
+  style={{ border: `3px solid ${primaryColor}` }}>
+  {data?.fotoPrincipal ? (
+    <img src={apiUrl(data.fotoPrincipal)} alt="foto" className="w-full h-full object-cover" />
+  ) : (
+    <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-white"
+      style={{ backgroundColor: primaryColor }}>
+      {data?.personalInfo?.name?.[0] || '?'}
+    </div>
+  )}
+</div>
         <h1 className="text-base font-bold text-slate-900 text-center mb-1">
           <EditableText value={data?.personalInfo?.name || ''} onSave={v => update('personalInfo.name', v)} />
         </h1>
@@ -590,6 +649,35 @@ useEffect(() => {
                   className="p-6 rounded-2xl bg-slate-900/70 backdrop-blur-md border border-cyan-500/30">
                   <h3 className="mb-4 text-lg text-cyan-400">Estructura</h3>
                   <div className="space-y-3">
+                    {layouts.map((layout) => {
+  const locked = layout.premium && plan !== 'premium';
+  return (
+    <motion.button key={layout.id}
+      whileHover={!locked ? { scale: 1.02 } : {}}
+      onClick={() => !locked && setSelectedLayout(layout.id)}
+      className={`w-full p-4 rounded-xl text-left transition-all relative
+        ${selectedLayout === layout.id ? 'bg-slate-800 border-2 border-cyan-500/50' : 'bg-slate-950/50 border border-slate-700'}
+        ${locked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+      {layout.premium && (
+        <span className="absolute top-2 right-2 text-xs px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-400 border border-violet-500/30">
+          Premium
+        </span>
+      )}
+      
+      <div className="h-14 mb-3 rounded-lg overflow-hidden bg-slate-700">
+        {layout.id === 'modern' && ( <div className="h-full flex flex-col"><div className="h-6 flex-shrink-0" style={{ backgroundColor: primaryColor + '80' }} /><div className="flex-1 p-1 space-y-1"><div className="h-1 bg-slate-500 rounded w-2/3 mx-auto" /><div className="h-1 bg-slate-600 rounded w-full" /></div></div> )}
+        {layout.id === 'classic' && ( <div className="h-full flex"><div className="w-10 flex-shrink-0" style={{ backgroundColor: primaryColor + '30' }} /><div className="flex-1 p-1 space-y-1"><div className="h-1.5 bg-slate-500 rounded w-1/2" /><div className="h-1 bg-slate-600 rounded w-full" /></div></div> )}
+        {layout.id === 'minimal' && ( <div className="h-full p-2 space-y-1"><div className="h-2 bg-slate-400 rounded w-1/3" /><div className="h-px rounded w-full" style={{ backgroundColor: primaryColor + '80' }} /><div className="h-1 bg-slate-600 rounded w-full" /></div> )}
+        {layout.id === 'bold' && ( <div className="h-full" style={{ backgroundColor: primaryColor }}><div className="absolute bottom-0 right-0 w-1/3 h-full bg-black/20" style={{ clipPath: 'polygon(30% 0,100% 0,100% 100%,0% 100%)' }} /></div> )}
+        {layout.id === 'creative' && ( <div className="h-full flex items-center justify-center" style={{ backgroundColor: '#0f172a' }}><div className="w-6 h-6 rounded-full" style={{ backgroundColor: primaryColor }} /></div> )}
+        {layout.id === 'elegant' && ( <div className="h-full flex flex-col"><div className="flex-1" style={{ backgroundColor: '#0f172a' }} /><div className="h-3" style={{ backgroundColor: primaryColor + 'cc' }} /></div> )}
+        {layout.id === 'modernpro' && ( <div className="h-full rounded" style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}66)` }} /> )}
+      </div>
+      <p className="text-white font-medium">{layout.label}</p>
+      <p className="text-slate-500 text-sm">{layout.desc}</p>
+    </motion.button>
+  );
+})}{/*
                     {layouts.map((layout) => (
                       <motion.button key={layout.id} whileHover={{ scale: 1.02 }} onClick={() => setSelectedLayout(layout.id)}
                         className={`w-full p-4 rounded-xl text-left transition-all ${selectedLayout === layout.id ? 'bg-slate-800 border-2 border-cyan-500/50' : 'bg-slate-950/50 border border-slate-700'}`}>
@@ -626,6 +714,7 @@ useEffect(() => {
                         <p className="text-slate-500 text-sm">{layout.desc}</p>
                       </motion.button>
                     ))}
+                      */}
                   </div>
                 </motion.div>
               )}
@@ -720,9 +809,13 @@ useEffect(() => {
                 <motion.div key={selectedLayout} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                   className="rounded-2xl bg-white shadow-2xl overflow-auto max-h-[85vh]"
                   style={{ padding: selectedLayout === 'classic' ? '0' : '2rem' }}>
-                  {selectedLayout === 'modern' && <PreviewModern />}
-                  {selectedLayout === 'classic' && <PreviewClassic />}
-                  {selectedLayout === 'minimal' && <PreviewMinimal />}
+                  {selectedLayout === 'modern'    && <PreviewModern />}
+                  {selectedLayout === 'classic'   && <PreviewClassic />}
+                  {selectedLayout === 'minimal'   && <PreviewMinimal />}
+                  {selectedLayout === 'bold'      && <BoldTemplate    data={data} primaryColor={primaryColor} font={selectedFont} />}
+                  {selectedLayout === 'creative'  && <CreativeTemplate data={data} primaryColor={primaryColor} font={selectedFont} />}
+                  {selectedLayout === 'elegant'   && <ElegantTemplate  data={data} primaryColor={primaryColor} font={selectedFont} />}
+                  {selectedLayout === 'modernpro' && <ModernTemplate   data={data} primaryColor={primaryColor} font={selectedFont} />}
                 </motion.div>
               </AnimatePresence>
             </div>

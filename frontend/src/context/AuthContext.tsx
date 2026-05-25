@@ -31,9 +31,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem('visume_usuario');
     return saved ? JSON.parse(saved) : null;
   });
-  const [plan, setPlanState] = useState<'free' | 'premium' | null>(() => {
-    return localStorage.getItem('visume_plan') as 'free' | 'premium' | null;
-  });
+  const plan: 'free' | 'premium' | null = usuario
+  ? (usuario.estaPagando ? 'premium' : 'free')
+  : null;
   const maxFotosCv = usuario?.maxFotosCv ?? (plan === 'premium' ? 10 : 1);
 
   const login = (newToken: string, newUsuario: Usuario) => {
@@ -51,9 +51,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const setPlan = (newPlan: 'free' | 'premium') => {
-    setPlanState(newPlan);
-    localStorage.setItem('visume_plan', newPlan);
-  };
+  setUsuario(prev => {
+    if (!prev) return prev;
+    const updated = { ...prev, estaPagando: newPlan === 'premium' };
+    localStorage.setItem('visume_usuario', JSON.stringify(updated));
+    return updated;
+  });
+};
 
   return (
     <AuthContext.Provider value={{

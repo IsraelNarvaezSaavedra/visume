@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, useInView } from 'motion/react';
-
+import { apiUrl } from '../../config/api';
 interface CVTemplateProps {
   data: any;
   primaryColor: string;
@@ -118,13 +118,20 @@ export default function CreativeTemplate({ data, primaryColor, font }: CVTemplat
         <ParticleCanvas color={primaryColor} />
         <div className="relative z-10 text-center px-8">
           <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
-            className="w-32 h-32 rounded-full mx-auto mb-8 flex items-center justify-center text-5xl font-black border-4"
-            style={{ borderColor: primaryColor, color: primaryColor, backgroundColor: primaryColor + '20' }}>
-            {data?.personalInfo?.name?.[0] || '?'}
-          </motion.div>
+  initial={{ scale: 0 }}
+  animate={{ scale: 1 }}
+  transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
+  className="w-32 h-32 rounded-full mx-auto mb-8 overflow-hidden border-4"
+  style={{ borderColor: primaryColor }}>
+  {data?.fotoPrincipal ? (
+    <img src={apiUrl(data.fotoPrincipal)} alt="foto" className="w-full h-full object-cover" />
+  ) : (
+    <div className="w-full h-full flex items-center justify-center text-5xl font-black"
+      style={{ color: primaryColor, backgroundColor: primaryColor + '20' }}>
+      {data?.personalInfo?.name?.[0] || '?'}
+    </div>
+  )}
+</motion.div>
 
           <motion.h1
             initial={{ opacity: 0, y: 40 }}

@@ -16,6 +16,8 @@ public class CurriculumResponseDTO {
     private List<Language> languages;
     private List<String> interests;
     private Style style;
+    private String fotoPrincipal;
+    private List<String> fotosGaleria;
 
     @Data
     public static class PersonalInfo {

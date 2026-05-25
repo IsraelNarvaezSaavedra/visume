@@ -259,7 +259,7 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
     )}
   </div>
 </div>
-              {/* Información de usuario con mejor jerarquía */}
+              {/* Información de usuario */}
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-3">
                   <h1 className="text-3xl font-extrabold text-white tracking-tight">
@@ -284,7 +284,7 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
               </div>
             </div>
 
-            {/* Botón de Logout más estilizado */}
+            {/* Botón de Logout */}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
