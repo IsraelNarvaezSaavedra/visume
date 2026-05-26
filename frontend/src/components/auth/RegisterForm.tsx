@@ -1,7 +1,7 @@
 // RegisterForm.tsx
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Lock, User, AtSign, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, AtSign, Eye, EyeOff, CheckCircle2, Circle } from 'lucide-react';
 import axios from 'axios';
 import { apiUrl } from '../../config/api';
 
@@ -20,6 +20,33 @@ export default function RegisterForm() {
     confirmPassword: '',
   });
 
+  const passwordChecks = [
+    {
+      label: 'Mínimo 6 caracteres',
+      passed: formData.password.length >= 6,
+    },
+    {
+      label: 'Una letra mayúscula',
+      passed: /[A-Z]/.test(formData.password),
+    },
+    {
+      label: 'Una letra minúscula',
+      passed: /[a-z]/.test(formData.password),
+    },
+    {
+      label: 'Un número',
+      passed: /[0-9]/.test(formData.password),
+    },
+    {
+      label: 'Un símbolo',
+      passed: /[^A-Za-z0-9]/.test(formData.password),
+    },
+    {
+      label: 'Las contraseñas coinciden',
+      passed: formData.password.length > 0 && formData.password === formData.confirmPassword,
+    },
+  ];
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -34,6 +61,11 @@ export default function RegisterForm() {
     e.preventDefault();
 
     // Validaciones básicas en frontend
+    if (!passwordChecks.every((check) => check.passed)) {
+      setError('Revisa los requisitos de la contraseña antes de continuar');
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError('Las contraseñas no coinciden');
       return;
@@ -191,6 +223,26 @@ export default function RegisterForm() {
             </button>
           </div>
         </div>
+      </div>
+
+      <div className="rounded-xl border border-cyan-500/20 bg-slate-950/40 p-4">
+        <p className="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
+          Requisitos de la contraseña
+        </p>
+        <ul className="space-y-2">
+          {passwordChecks.map((check) => (
+            <li key={check.label} className="flex items-center gap-2 text-sm">
+              {check.passed ? (
+                <CheckCircle2 size={16} className="text-emerald-400" />
+              ) : (
+                <Circle size={16} className="text-slate-500" />
+              )}
+              <span className={check.passed ? 'text-emerald-300' : 'text-slate-500'}>
+                {check.label}
+              </span>
+            </li>
+          ))}
+        </ul>
       </div>
 
       <div>

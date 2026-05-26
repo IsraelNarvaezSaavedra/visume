@@ -20,14 +20,6 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-violet-500/20 rounded-3xl blur-xl" />
           <div className="relative p-8 rounded-3xl bg-slate-900/70 backdrop-blur-md border border-cyan-500/30 shadow-2xl">
             <div className="text-center mb-8">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 200, damping: 10 }}
-                className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-cyan-500 to-violet-600 flex items-center justify-center shadow-lg shadow-cyan-500/50"
-              >
-                <span className="text-3xl">✨</span>
-              </motion.div>
               <h2 className="mb-2 text-3xl bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent">
                 {mode === 'login' ? 'Bienvenido de nuevo' : 'Crea tu cuenta'}
               </h2>

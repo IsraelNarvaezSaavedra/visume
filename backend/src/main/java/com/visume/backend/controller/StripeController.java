@@ -14,7 +14,12 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/stripe")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {
+    "http://isra.francecentral.cloudapp.azure.com",
+    "https://isra.francecentral.cloudapp.azure.com",
+    "http://localhost:5173",
+    "http://localhost:3000"
+})
 public class StripeController {
 
     private final StripeService stripeService;
@@ -56,6 +61,22 @@ public class StripeController {
             return ResponseEntity.ok(Map.of("url", url));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/confirm")
+    public ResponseEntity<?> confirmarPago(@AuthenticationPrincipal String username,
+                                           @RequestParam("session_id") String sessionId) {
+        try {
+            Session session = stripeService.confirmarSuscripcion(username, sessionId);
+            return ResponseEntity.ok(Map.of(
+                    "confirmed", true,
+                    "sessionId", session.getId(),
+                    "paymentStatus", session.getPaymentStatus(),
+                    "status", session.getStatus()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 

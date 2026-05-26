@@ -32,20 +32,8 @@ public class CurriculumsMetadatos {
     @Column(name = "skills", columnDefinition = "TEXT")
     private String skills;
 
-    @Column(name = "sector", length = 100)
-    private String sector;
-
-    @Column(name = "anos_experiencia")
-    private Integer anosExperiencia;
-
-    @Column(name = "nivel_ingles", length = 20)
-    private String nivelIngles;
-
     @Column(name = "ubicacion", length = 100)
     private String ubicacion;
-
-    @Column(name = "palabras_clave", columnDefinition = "TEXT")
-    private String palabrasClave;
 
     @Column(name = "ultima_extraccion", nullable = false)
     private LocalDateTime ultimaExtraccion;

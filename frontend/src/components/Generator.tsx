@@ -25,7 +25,7 @@ export default function Generator({ onGenerate, onUpgrade }: GeneratorProps) {
   const handleConfirmPlan = () => {
     if (!selectedPlan) return;
     if (selectedPlan === "premium") {
-      alert("Portal de pago próximamente");
+      onUpgrade();
       return;
     }
     setPlan(selectedPlan);

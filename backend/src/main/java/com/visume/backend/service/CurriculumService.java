@@ -8,11 +8,9 @@ import com.visume.backend.repositories.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Flux;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -106,11 +104,6 @@ public class CurriculumService {
         geminiResponse.setId(curriculum.getIdCurriculum());
 
         return geminiResponse;
-    }
-
-    // Versión streaming para plan premium
-    public Flux<String> generarStream(CurriculumRequestDTO request) {
-        return geminiService.generateCurriculumStream(request);
     }
 
     private void guardarSeccion(Curriculums curriculum, String tipo, Object datos, int orden) {

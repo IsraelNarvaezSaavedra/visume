@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
+import { apiUrl } from '../config/api';
 
 interface Usuario {
   username: string;
@@ -17,6 +18,7 @@ interface AuthContextType {
   login: (token: string, usuario: Usuario) => void;
   logout: () => void;
   setPlan: (plan: 'free' | 'premium') => void;
+  refreshUsuario: () => Promise<void>;
   isAuthenticated: boolean;
 }
 
@@ -59,6 +61,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 };
 
+  const refreshUsuario = async () => {
+    if (!token) return;
+
+    const res = await fetch(apiUrl('/api/perfil'), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) {
+      throw new Error('No se pudo refrescar el usuario');
+    }
+
+    const perfil = await res.json();
+    const updated: Usuario = {
+      username: perfil.username,
+      email: perfil.email,
+      nombre: perfil.nombre,
+      estaPagando: perfil.estaPagando,
+      rol: perfil.rol,
+      maxFotosCv: perfil.estaPagando ? 6 : 1,
+    };
+
+    setUsuario(updated);
+    localStorage.setItem('visume_usuario', JSON.stringify(updated));
+  };
+
   return (
     <AuthContext.Provider value={{
       usuario,
@@ -68,6 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       logout,
       setPlan,
+      refreshUsuario,
       isAuthenticated: !!token,
     }}>
       {children}

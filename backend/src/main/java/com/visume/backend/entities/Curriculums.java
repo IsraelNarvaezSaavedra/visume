@@ -53,18 +53,9 @@ public class Curriculums {
     @OneToMany(mappedBy = "curriculum", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CurriculumFotos> fotos;
 
-    @ManyToOne
-    @JoinColumn(name = "id_plantilla", nullable = true, foreignKey = @ForeignKey(name = "fk_curriculums_plantillas"))
-    private Plantillas plantilla;
-
-    // Relaciones OneToMany
-    @OneToMany(mappedBy = "curriculum")
-    private List<CurriculumsVersiones> versiones;
-
     @OneToMany(mappedBy = "curriculum")
     private List<CurriculumSecciones> secciones;
 
-    // Relación OneToOne con metadatos
     @OneToOne(mappedBy = "curriculum")
     private CurriculumsMetadatos metadatos;
 

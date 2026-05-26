@@ -3,7 +3,9 @@ package com.visume.backend.service;
 import com.visume.backend.dto.LoginRequest;
 import com.visume.backend.dto.LoginResponse;
 import com.visume.backend.dto.RegisterRequest;
+import com.visume.backend.entities.Planes;
 import com.visume.backend.entities.Usuarios;
+import com.visume.backend.repositories.PlanesRepository;
 import com.visume.backend.repositories.UsuariosRepository;
 import com.visume.backend.utils.JwtUtil;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -13,11 +15,13 @@ import org.springframework.stereotype.Service;
 public class UsuariosService {
 
     private final UsuariosRepository repository;
+    private final PlanesRepository planesRepository;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
     private final JwtUtil jwtUtil;
 
-    public UsuariosService(UsuariosRepository repository, JwtUtil jwtUtil) {
+    public UsuariosService(UsuariosRepository repository, PlanesRepository planesRepository, JwtUtil jwtUtil) {
         this.repository = repository;
+        this.planesRepository = planesRepository;
         this.jwtUtil = jwtUtil;
     }
 
@@ -31,6 +35,10 @@ public class UsuariosService {
         usuario.setEmail(dto.getEmail());
         usuario.setNombre(dto.getNombre());
         usuario.setContrasena(encoder.encode(dto.getContrasena()));
+        usuario.setProfesion(dto.getProfesion());
+
+        planesRepository.findByNombreIgnoreCase("Free")
+            .ifPresent(usuario::setPlan);
 
         return repository.save(usuario);
     }

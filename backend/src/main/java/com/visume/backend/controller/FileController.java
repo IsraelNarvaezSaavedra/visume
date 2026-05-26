@@ -25,7 +25,12 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/files")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {
+    "http://isra.francecentral.cloudapp.azure.com",
+    "https://isra.francecentral.cloudapp.azure.com",
+    "http://localhost:5173",
+    "http://localhost:3000"
+})
 public class FileController {
 
     @Value("${file.upload.dir}")

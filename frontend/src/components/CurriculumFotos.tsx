@@ -13,11 +13,12 @@ interface Props {
   idCurriculum: number;
   esPremium: boolean;
   maxFotos: number;
+  onUpgrade: () => void;
   onFotoPrincipalChange?: (url: string) => void;
   onFotosChange?: (fotos: Foto[]) => void;
 }
 
-export default function CurriculumFotos({ idCurriculum, esPremium, maxFotos, onFotoPrincipalChange, onFotosChange }: Props) {
+export default function CurriculumFotos({ idCurriculum, esPremium, maxFotos, onUpgrade, onFotoPrincipalChange, onFotosChange }: Props) {
   const [fotos, setFotos] = useState<Foto[]>([]);
   const [subiendo, setSubiendo] = useState(false);
   const [subiendoPrincipal, setSubiendoPrincipal] = useState(false);
@@ -153,7 +154,7 @@ export default function CurriculumFotos({ idCurriculum, esPremium, maxFotos, onF
 
       {!esPremium && (
         <p className="text-xs text-slate-500">
-          <button onClick={() => alert('Portal de pago próximamente 🚀')}
+          <button onClick={onUpgrade}
             className="text-violet-400 hover:text-violet-300 underline">
             Hazte Premium
           </button>{' '}

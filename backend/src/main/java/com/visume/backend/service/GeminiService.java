@@ -140,40 +140,6 @@ public class GeminiService {
         return base;
     }
 
-    // Streaming — devuelve chunks de texto según llegan
-    public Flux<String> generateCurriculumStream(CurriculumRequestDTO request) {
-        Map<String, Object> body = Map.of(
-                "contents", List.of(
-                        Map.of("role", "user", "parts", List.of(
-                                Map.of("text", buildSystemPrompt(request.getPlan())
-                                        + "\n\nUsuario dice:\n" + request.getPrompt())))),
-                "generationConfig", Map.of(
-                        "temperature", 0.7,
-                        "maxOutputTokens", 8192));
-
-        return geminiWebClient.post()
-                .uri(uriBuilder -> uriBuilder
-                        .path(":streamGenerateContent")
-                        .queryParam("alt", "sse")
-                        .queryParam("key", geminiApiKey)
-                        .build())
-                .bodyValue(body)
-                .retrieve()
-                .bodyToFlux(String.class)
-                .filter(chunk -> chunk.startsWith("data: "))
-                .map(chunk -> chunk.substring(6))
-                .filter(chunk -> !chunk.equals("[DONE]"))
-                .mapNotNull(chunk -> {
-                    try {
-                        var node = objectMapper.readTree(chunk);
-                        return node.at("/candidates/0/content/parts/0/text").asText(null);
-                    } catch (Exception e) {
-                        return null;
-                    }
-                })
-                .filter(text -> text != null && !text.isEmpty());
-    }
-
     // Sin streaming — espera y devuelve el JSON completo parseado
     public CurriculumResponseDTO generateCurriculum(CurriculumRequestDTO request) {
         Map<String, Object> body = Map.of(

@@ -58,9 +58,10 @@ function EditableText({ value, onSave, className = '', style, multiline }: Edita
 // ── Editor ──────────────────────────────────────────────────────
 interface EditorProps {
   resumeData: any;
+  onUpgrade: () => void;
 }
 
-export default function Editor({ resumeData }: EditorProps) {
+export default function Editor({ resumeData, onUpgrade }: EditorProps) {
   const { token, plan, maxFotosCv } = useAuth();
   const [activeTab, setActiveTab] = useState<'colors' | 'fonts' | 'layout' | 'content' | 'photos'>('colors');
   const [primaryColor, setPrimaryColor] = useState(resumeData?.style?.primaryColor || '#06b6d4');
@@ -89,7 +90,7 @@ useEffect(() => {
   // Si no hay datos (vengo desde perfil con solo el id), hacemos fetch
   let cancelled = false;
   setLoading(true);
-  fetch(`http://localhost:8080/api/curriculum/${id}`, {
+  fetch(apiUrl(`/api/curriculum/${id}`), {
     headers: { Authorization: `Bearer ${token}` }
   })
     .then(res => res.json())
@@ -214,7 +215,7 @@ useEffect(() => {
         ...data,
         style: { ...data.style, primaryColor, font: selectedFont, template: selectedLayout }
       };
-      const res = await fetch(`http://localhost:8080/api/curriculum/${data.id}`, {
+      const res = await fetch(apiUrl(`/api/curriculum/${data.id}`), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(dataToSave),
@@ -246,7 +247,7 @@ useEffect(() => {
   let fotoBase64 = '';
   if (data?.fotoPrincipal) {
     try {
-      fotoBase64 = await toBase64(`http://localhost:8080${data.fotoPrincipal}`);
+      fotoBase64 = await toBase64(apiUrl(data.fotoPrincipal));
     } catch (e) {
       console.warn('No se pudo cargar la foto:', e);
     }
@@ -871,6 +872,7 @@ useEffect(() => {
   idCurriculum={data.id}
   esPremium={plan === 'premium'}
   maxFotos={maxFotosCv}
+  onUpgrade={onUpgrade}
   onFotoPrincipalChange={(url: string) => setData((prev: any) => ({ ...prev, fotoPrincipal: url }))}
   onFotosChange={(fotos: any[]) => setData((prev: any) => ({ ...prev, fotos }))}
 />

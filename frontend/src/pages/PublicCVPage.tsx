@@ -51,7 +51,7 @@ export default function PublicCVPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-950">
         <div className="text-center">
-          <div className="text-6xl mb-4">😕</div>
+          <div className="text-6xl mb-4">CV</div>
           <h1 className="text-3xl font-bold text-white mb-2">CV no encontrado</h1>
           <p className="text-slate-400 mb-6">{error}</p>
           <button

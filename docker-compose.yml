@@ -1,0 +1,64 @@
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: visume
+      MYSQL_USER: visume
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-change-me}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-change-me-root}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - visume
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env.docker
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/visume?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      DB_USERNAME: visume
+      DB_PASSWORD: ${DB_PASSWORD:-change-me}
+      SERVER_PORT: 8080
+      FRONTEND_URL: http://isra.francecentral.cloudapp.azure.com
+      FILE_UPLOAD_DIR: /app/uploads
+    volumes:
+      - backend_uploads:/app/uploads
+      - backend_logs:/app/logs
+    depends_on:
+      mysql:
+        condition: service_healthy
+    expose:
+      - "8080"
+    networks:
+      - visume
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: /api
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - visume
+
+volumes:
+  mysql_data:
+  backend_uploads:
+  backend_logs:
+
+networks:
+  visume:

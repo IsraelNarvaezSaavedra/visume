@@ -179,7 +179,7 @@ export default function BoldTemplate({ data, primaryColor, font }: CVTemplatePro
                 <div>
                   <div className="flex items-center gap-4 mb-8">
                     <div className="w-8 h-8 rounded flex items-center justify-center text-white font-black text-sm"
-                      style={{ backgroundColor: primaryColor }}>🎨</div>
+                      style={{ backgroundColor: primaryColor }}>P</div>
                     <h2 className="text-2xl font-black text-slate-900 uppercase tracking-wider">Proyectos & Obras</h2>
                   </div>
                   <div className="grid grid-cols-3 gap-4">

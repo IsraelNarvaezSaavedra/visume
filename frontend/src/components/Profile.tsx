@@ -26,6 +26,7 @@ import { apiUrl } from "../config/api";
 interface ProfileProps {
   onNavigate: (section: string) => void;
   onLogout: () => void;
+  onUpgrade: () => void;
 }
 
 interface CurriculumResumen {
@@ -48,7 +49,7 @@ interface PerfilData {
   curriculums: CurriculumResumen[];
 }
 
-export default function Profile({ onNavigate, onLogout }: ProfileProps) {
+export default function Profile({ onNavigate, onLogout, onUpgrade }: ProfileProps) {
   const { token } = useAuth();
   const [perfil, setPerfil] = useState<PerfilData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -127,7 +128,7 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch("http://localhost:8080/api/files/avatar", {
+      const res = await fetch(apiUrl("/api/files/avatar"), {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -220,7 +221,7 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
     <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-500 to-violet-600 shadow-xl shadow-cyan-500/20 flex items-center justify-center overflow-hidden transform transition-transform group-hover:scale-105">
       {perfil?.fotoUrl ? (
         <img
-          src={`http://localhost:8080${perfil.fotoUrl}`}
+          src={apiUrl(perfil.fotoUrl)}
           alt="avatar"
           className="w-full h-full object-cover"
         />
@@ -318,7 +319,7 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
             {!perfil?.estaPagando && (
               <motion.button
                 whileHover={{ scale: 1.02 }}
-                onClick={() => alert("Portal de pago próximamente 🚀")}
+                onClick={onUpgrade}
                 className="mt-3 w-full py-2 rounded-lg bg-gradient-to-r from-violet-500/20 to-purple-500/20 border border-violet-500/30 text-violet-300 text-sm flex items-center justify-center gap-2 hover:from-violet-500/30 transition-all"
               >
                 <Crown size={13} /> Pasar a Premium — más curriculums y
@@ -662,9 +663,7 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
                       <>
                         , o{" "}
                         <button
-                          onClick={() =>
-                            alert("Portal de pago próximamente 🚀")
-                          }
+                          onClick={onUpgrade}
                           className="underline hover:text-orange-200"
                         >
                           pasa a Premium
