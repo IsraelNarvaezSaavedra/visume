@@ -115,6 +115,13 @@
 			<version>2.15.1</version>
 		</dependency>
 
+		<!-- Stripe -->
+		<dependency>
+    		<groupId>com.stripe</groupId>
+    		<artifactId>stripe-java</artifactId>
+    		<version>25.1.0</version>
+		</dependency>
+
 		<!-- WebFlux para streaming con SSE -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

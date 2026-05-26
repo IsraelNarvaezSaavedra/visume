@@ -6,9 +6,10 @@ import { apiUrl } from "../config/api";
 
 interface GeneratorProps {
   onGenerate: (data: any) => void;
+  onUpgrade: () => void;
 }
 
-export default function Generator({ onGenerate }: GeneratorProps) {
+export default function Generator({ onGenerate, onUpgrade }: GeneratorProps) {
   const { plan, setPlan, token } = useAuth();
 
   const [phase, setPhase] = useState<"select" | "generate">(
@@ -229,7 +230,7 @@ export default function Generator({ onGenerate }: GeneratorProps) {
                     <motion.button
                       whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(139,92,246,0.4)" }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => alert("Portal de pago próximamente")}
+                      onClick={onUpgrade}
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-lg shadow-violet-500/30"
                     >
                       <Crown size={14} />

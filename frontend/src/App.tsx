@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import ParticlesBackground from "./components/shared/ParticlesBackground";
@@ -9,12 +9,26 @@ import AuthPage from "./pages/AuthPage";
 import ProfilePage from "./pages/ProfilePage";
 import AdminPage from "./pages/AdminPage";
 import { useAuth } from "./context/AuthContext";
+import StripeCheckout from "./components/StripeCheckout";
 
 export default function App() {
   const [currentSection, setCurrentSection] = useState("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [generatedResume, setGeneratedResume] = useState<any>(null);
   const { isAuthenticated, usuario, logout } = useAuth();
+  const [showStripe, setShowStripe] = useState(false);
+
+  useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('pago') === 'exito') {
+    // Limpiar la URL
+    window.history.replaceState({}, '', '/');
+    // Recargar el usuario para actualizar estaPagando
+    setShowStripe(false);
+    // Mostrar mensaje de éxito
+    alert('¡Bienvenido a Premium! 🎉');
+  }
+}, []);
 
   const scrollToSection = (section: string) => {
     if (section === "generator" && !isAuthenticated) {
@@ -61,11 +75,17 @@ export default function App() {
       />
       <main className="pt-20">
         {currentSection === "home" && <HomePage onGetStarted={() => scrollToSection("generator")} />}
-        {currentSection === "generator" && <GeneratorPage onGenerate={handleGenerate} />}
+        {currentSection === "generator" && (
+          <GeneratorPage
+            onGenerate={handleGenerate}
+            onUpgrade={() => setShowStripe(true)}
+          />
+        )}
         {currentSection === "editor" && <EditorPage resumeData={generatedResume} />}
         {currentSection === "auth" && <AuthPage onLoginSuccess={handleLoginSuccess} />}
         {currentSection === "profile" && <ProfilePage onNavigate={scrollToSection} onLogout={handleLogout} />}
         {currentSection === "admin" && <AdminPage />}
+        {showStripe && <StripeCheckout onClose={() => setShowStripe(false)} />}
       </main>
       <Footer onNavigate={scrollToSection} />
     </div>
