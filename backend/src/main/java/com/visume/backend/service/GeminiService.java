@@ -140,7 +140,7 @@ public class GeminiService {
         return base;
     }
 
-    // Sin streaming — espera y devuelve el JSON completo parseado
+    // Espera y devuelve el JSON completo parseado
     public CurriculumResponseDTO generateCurriculum(CurriculumRequestDTO request) {
         Map<String, Object> body = Map.of(
                 "contents", List.of(

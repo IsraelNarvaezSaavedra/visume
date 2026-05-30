@@ -75,10 +75,12 @@ export default function Editor({ resumeData, onUpgrade }: EditorProps) {
   const [loading, setLoading] = useState(!resumeData?.personalInfo);
 
 useEffect(() => {
-  const id = resumeData?.id || localStorage.getItem('visume_current_cv_id');
-  if (!id) return;
+  const cvIdFromStorage = localStorage.getItem('visume_current_cv_id');
+  const targetId = cvIdFromStorage || (resumeData?.id ? String(resumeData.id) : null);
+  if (!targetId) return;
 
-  if (resumeData?.personalInfo) {
+  const canUseResumeData = !!resumeData?.personalInfo && String(resumeData?.id) === targetId;
+  if (canUseResumeData) {
     setData(resumeData);
     setPrimaryColor(resumeData?.style?.primaryColor || '#06b6d4');
     setSelectedFont(resumeData?.style?.font || 'Inter');
@@ -87,13 +89,16 @@ useEffect(() => {
     return;
   }
 
-  // Si no hay datos (vengo desde perfil con solo el id), hacemos fetch
+  // Si el CV seleccionado no coincide con el estado local, recargamos desde API.
   let cancelled = false;
   setLoading(true);
-  fetch(apiUrl(`/api/curriculum/${id}`), {
+  fetch(apiUrl(`/api/curriculum/${targetId}`), {
     headers: { Authorization: `Bearer ${token}` }
   })
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) throw new Error('No se pudo cargar el curriculum');
+      return res.json();
+    })
     .then(loaded => {
       if (!cancelled) {
         setData(loaded);
@@ -106,7 +111,7 @@ useEffect(() => {
     .finally(() => { if (!cancelled) setLoading(false); });
 
   return () => { cancelled = true; };
-}, []);
+}, [resumeData, token]);
 
 // Cargar fotos de galería (no principales)
 useEffect(() => {
